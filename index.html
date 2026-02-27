@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GameZone — Мини-игры</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--bg2:#0f0f1a;--card:#13131f;--card2:#1a1a2e;
+  --border:#ffffff0f;--a1:#ff4060;--a2:#00d4ff;--a3:#ffe600;--a4:#b14aff;
+  --text:#eeeef5;--muted:#5a5a7a;--green:#00e676;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(255,64,96,.13) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 85% 90%,rgba(0,212,255,.10) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 50% 40%,rgba(177,74,255,.07) 0%,transparent 70%)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:44px 44px}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-logo{padding:28px 24px 20px;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;border-bottom:1px solid var(--border)}
+.sidebar-logo em{font-style:normal;color:var(--a3);-webkit-text-fill-color:var(--a3)}
+.sidebar-nav{flex:1;padding:16px 0}
+.nav-label{padding:12px 24px 6px;font-size:.65rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;color:var(--muted);font-weight:700;font-size:.9rem;cursor:pointer;border:none;background:none;width:100%;text-align:left;position:relative;transition:color .2s}
+.nav-item:hover{color:var(--text)}
+.nav-item.active{color:var(--text)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--a1),var(--a4))}
+.nav-item.active .ni{color:var(--a1)}
+.ni{font-size:1.1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--a1);color:#fff;font-size:.65rem;font-weight:900;padding:2px 7px;border-radius:100px}
+.nav-badge.g{background:var(--green);color:#000}
+.ndot{width:8px;height:8px;background:var(--a1);border-radius:50%;margin-left:auto;flex-shrink:0}
+
+/* Sidebar user card */
+.su{margin:16px;border-radius:14px;background:var(--card);border:1px solid var(--border);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s}
+.su:hover{border-color:rgba(255,255,255,.15)}
+.su-ava{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;position:relative}
+.dot{position:absolute;bottom:0;right:0;width:11px;height:11px;background:var(--green);border-radius:50%;border:2px solid var(--bg2)}
+.su-info{flex:1;min-width:0}
+.su-name{font-weight:800;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-lv{font-size:.72rem;color:var(--muted)}
+.xpm{margin-top:5px;height:3px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.xpmf{height:100%;width:65%;background:linear-gradient(90deg,var(--a1),var(--a4));border-radius:10px}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;padding:32px;position:relative;z-index:1}
+.page{display:none}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Page header */
+.ph{margin-bottom:32px}
+.pt{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:2px;line-height:1}
+.pt span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ps{color:var(--muted);margin-top:6px;font-size:.95rem}
+
+/* Quick stats */
+.qs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;display:flex;align-items:center;gap:16px}
+.qcard-ico{font-size:2rem}
+.qcard-val{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;line-height:1}
+.qcard-lbl{font-size:.75rem;color:var(--muted)}
+
+/* Section card */
+.sc{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:18px}
+.sc-title{font-weight:900;font-size:1rem;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* Game grid */
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.gc{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative}
+.gc:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.12);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.gthumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden}
+.gthumb::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--card) 100%)}
+.ginfo{padding:14px}
+.gname{font-weight:900;font-size:.95rem;margin-bottom:4px}
+.gdesc{font-size:.78rem;color:var(--muted);line-height:1.4}
+.gmeta{display:flex;align-items:center;gap:8px;margin-top:10px}
+.gtag{font-size:.68rem;font-weight:800;letter-spacing:.5px;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.06);color:var(--muted)}
+.gtag.hot{background:rgba(255,64,96,.15);color:var(--a1)}
+.gtag.new{background:rgba(0,212,255,.12);color:var(--a2)}
+.gstars{font-size:.75rem;color:var(--a3);margin-left:auto}
+.gpbtn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:pointer;opacity:0;transition:opacity .2s;z-index:2}
+.gc:hover .gpbtn{opacity:1}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.tb{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s}
+.tb:hover{border-color:rgba(255,255,255,.15);color:var(--text)}
+.tb.active{background:linear-gradient(90deg,var(--a1),var(--a4));border-color:transparent;color:#fff}
+
+/* Leaderboard */
+.lb{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.lb-h{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.lb-row{display:flex;align-items:center;gap:14px;padding:13px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+.lb-row:hover{background:rgba(255,255,255,.02)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;width:30px;text-align:center;color:var(--muted);flex-shrink:0}
+.lb-rank.g{color:var(--a3)}.lb-rank.s{color:#aaa}.lb-rank.b{color:#cd7f32}
+.lb-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.lb-name{flex:1;font-weight:800;font-size:.88rem}
+.lb-sub{font-size:.72rem;color:var(--muted)}
+.lb-score{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:var(--a2)}
+
+/* Profile */
+.prof-hero{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:30px;margin-bottom:20px;display:flex;align-items:center;gap:26px;position:relative;overflow:hidden}
+.prof-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,64,96,.08) 0%,transparent 60%);pointer-events:none}
+.pba{width:88px;height:88px;border-radius:50%;font-size:2.6rem;display:flex;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,.1);flex-shrink:0;position:relative;cursor:pointer}
+.pba-edit{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:.72rem;font-weight:700}
+.pba:hover .pba-edit{opacity:1}
+.prof-info{flex:1}
+.prof-name{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px}
+.prof-tag{color:var(--muted);font-size:.82rem;margin-bottom:10px}
+.lv-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.lv-lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.lv-num{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;background:linear-gradient(90deg,var(--a1),var(--a4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.xpbar{height:8px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.xpfill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--a1),var(--a4));width:65%;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.xptxt{font-size:.7rem;color:var(--muted);margin-top:4px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pst{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.pst-v{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--a2)}
+.pst-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.badge{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700}
+
+/* Avatar picker */
+.avagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:10px;margin-top:14px}
+.avaopt{aspect-ratio:1;border-radius:14px;background:var(--card2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:all .2s}
+.avaopt:hover{border-color:rgba(255,255,255,.2);transform:scale(1.06)}
+.avaopt.sel{border-color:var(--a1);box-shadow:0 0 20px rgba(255,64,96,.35)}
+
+/* Settings */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px}
+.scard-t{font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.trow:last-child{border-bottom:none;padding-bottom:0}
+.trow-lbl{font-size:.86rem;color:var(--muted)}
+.tog{width:44px;height:24px;border-radius:100px;background:rgba(255,255,255,.1);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--a1)}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on::after{transform:translateX(20px)}
+
+/* Auth modal */
+.overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:36px;width:100%;max-width:420px;position:relative;transform:translateY(20px);transition:transform .3s}
+.overlay.open .modal{transform:translateY(0)}
+.mcls{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:none;color:var(--muted);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;transition:color .2s}
+.mcls:hover{color:var(--text)}
+.mt{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;margin-bottom:4px}
+.ms{font-size:.84rem;color:var(--muted);margin-bottom:24px}
+.mtabs{display:flex;margin-bottom:22px;background:var(--card);border-radius:12px;padding:4px}
+.mtab{flex:1;padding:9px;border:none;background:none;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;border-radius:10px;transition:all .2s}
+.mtab.active{background:var(--bg2);color:var(--text)}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:.75rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.fi{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 15px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.93rem;outline:none;transition:border-color .2s}
+.fi:focus{border-color:rgba(255,64,96,.5)}
+.fi::placeholder{color:var(--muted)}
+.btn{width:100%;padding:13px;border-radius:14px;border:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;transition:all .2s;letter-spacing:.3px}
+.btn-p{background:linear-gradient(90deg,var(--a1),var(--a4));color:#fff}
+.btn-p:hover{opacity:.9;transform:translateY(-1px)}
+.btn-s{background:var(--card);border:1px solid var(--border);color:var(--text);margin-top:9px}
+.btn-s:hover{border-color:rgba(255,255,255,.15)}
+
+/* Hamburger */
+.ham{display:none;position:fixed;top:14px;left:14px;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;cursor:pointer;font-size:1.2rem;color:var(--text)}
+
+/* Select */
+.sel-ui{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-family:'Nunito',sans-serif;font-size:.8rem;outline:none}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:20px}
+  .ham{display:block}
+  .prof-hero{flex-direction:column;text-align:center}
+  .gg{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .qs{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+<button class="ham" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">GAME<em>ZONE</em></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Главная</div>
+    <button class="nav-item active" onclick="go('home',this)"><span class="ni">🏠</span>Главная</button>
+    <button class="nav-item" onclick="go('games',this)"><span class="ni">🎮</span>Все игры<span class="nav-badge g">5</span></button>
+    <button class="nav-item" onclick="go('leaderboard',this)"><span class="ni">🏆</span>Таблица лидеров</button>
+    <div class="nav-label" style="margin-top:8px">Профиль</div>
+    <button class="nav-item" onclick="go('profile',this)"><span class="ni">👤</span>Мой профиль</button>
+    <button class="nav-item" onclick="go('avatar',this)"><span class="ni">🎨</span>Выбор аватара</button>
+    <button class="nav-item" onclick="go('settings',this)"><span class="ni">⚙️</span>Настройки<span class="ndot"></span></button>
+    <div class="nav-label" style="margin-top:8px">Аккаунт</div>
+    <button class="nav-item" onclick="openAuth()"><span class="ni">🔑</span>Войти / Регистрация</button>
+  </nav>
+  <div class="su" onclick="go('profile',null)">
+    <div class="su-ava" id="suAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)">😎<div class="dot"></div></div>
+    <div class="su-info">
+      <div class="su-name" id="suName">Гость</div>
+      <div class="su-lv">Уровень <span id="suLv">7</span> · 6 500 XP</div>
+      <div class="xpm"><div class="xpmf"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="ph"><div class="pt">Привет, <span id="heroName">Игрок</span>!</div><div class="ps">Выбери игру и начни зарабатывать очки 🎯</div></div>
+    <div class="qs">
+      <div class="qcard"><div class="qcard-ico">🏆</div><div><div class="qcard-val" style="color:var(--a3)">1 240</div><div class="qcard-lbl">Твои очки</div></div></div>
+      <div class="qcard"><div class="qcard-ico">🎮</div><div><div class="qcard-val" style="color:var(--a2)">38</div><div class="qcard-lbl">Игр сыграно</div></div></div>
+      <div class="qcard"><div class="qcard-ico">⚡</div><div><div class="qcard-val" style="color:var(--a1)">7</div><div class="qcard-lbl">Уровень</div></div></div>
+      <div class="qcard"><div class="qcard-ico">🔥</div><div><div class="qcard-val" style="color:var(--a4)">5</div><div class="qcard-lbl">Дней подряд</div></div></div>
+    </div>
+    <div class="sc">
+      <div class="sc-title">🔥 Популярные игры</div>
+      <div class="gg">
+        <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Собирай еду, не врезайся!</div><div class="gmeta"><span class="gtag hot">Аркада</span><span class="gstars">★ 4.8</span></div></div></div>
+        <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки, не дай упасть</div><div class="gmeta"><span class="gtag hot">Аркада</span><span class="gstars">★ 4.9</span></div></div></div>
+        <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Насколько быстры твои рефлексы?</div><div class="gmeta"><span class="gtag new">Новое</span><span class="gstars">★ 4.6</span></div></div></div>
+        <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы и выигрывай</div><div class="gmeta"><span class="gtag new">Новое</span><span class="gstars">★ 4.7</span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <div class="page" id="page-games">
+    <div class="ph"><div class="pt">Все <span>Игры</span></div><div class="ps">Выбери что хочешь сыграть</div></div>
+    <div class="tabs">
+      <button class="tb active" onclick="setTab(this)">Все</button>
+      <button class="tb" onclick="setTab(this)">Аркады</button>
+      <button class="tb" onclick="setTab(this)">Головоломки</button>
+      <button class="tb" onclick="setTab(this)">Реакция</button>
+      <button class="tb" onclick="setTab(this)">Симуляторы</button>
+    </div>
+    <div class="gg">
+      <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Классика всех времён</div><div class="gmeta"><span class="gtag hot">Аркада</span><span class="gstars">★ 4.8</span></div></div></div>
+      <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки идеально</div><div class="gmeta"><span class="gtag hot">Аркада</span><span class="gstars">★ 4.9</span></div></div></div>
+      <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Тест скорости реакции</div><div class="gmeta"><span class="gtag new">Реакция</span><span class="gstars">★ 4.6</span></div></div></div>
+      <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a001a,#3a0060)">🧩<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Память</div><div class="gdesc">Найди все пары карточек</div><div class="gmeta"><span class="gtag">Головоломка</span><span class="gstars">★ 4.5</span></div></div></div>
+      <div class="gc" onclick="toast('Игра в разработке! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы как в CS2</div><div class="gmeta"><span class="gtag new">Симулятор</span><span class="gstars">★ 4.7</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="page" id="page-leaderboard">
+    <div class="ph"><div class="pt">Таблица <span>Лидеров</span></div><div class="ps">Лучшие игроки этой недели</div></div>
+    <div class="lb">
+      <div class="lb-h">
+        <div style="font-weight:900;font-size:1rem">🏆 Топ игроки</div>
+        <select class="sel-ui"><option>Эта неделя</option><option>Этот месяц</option><option>Всё время</option></select>
+      </div>
+      <div class="lb-row"><div class="lb-rank g">1</div><div class="lb-ava" style="background:linear-gradient(135deg,#ff4060,#b14aff)">👑</div><div><div class="lb-name">ProGamer_X</div><div class="lb-sub">Уровень 42 · Змейка мастер</div></div><div class="lb-score">48 200</div></div>
+      <div class="lb-row"><div class="lb-rank s">2</div><div class="lb-ava" style="background:linear-gradient(135deg,#00d4ff,#0080ff)">🦊</div><div><div class="lb-name">NightFox</div><div class="lb-sub">Уровень 38 · Тетрис чемп</div></div><div class="lb-score">41 500</div></div>
+      <div class="lb-row"><div class="lb-rank b">3</div><div class="lb-ava" style="background:linear-gradient(135deg,#ffe600,#ff8000)">🐉</div><div><div class="lb-name">DragonSlayer</div><div class="lb-sub">Уровень 35 · Реакция 0.12с</div></div><div class="lb-score">38 900</div></div>
+      <div class="lb-row"><div class="lb-rank">4</div><div class="lb-ava" style="background:linear-gradient(135deg,#00e676,#009688)">🐺</div><div><div class="lb-name">WolfPack</div><div class="lb-sub">Уровень 31</div></div><div class="lb-score">32 100</div></div>
+      <div class="lb-row"><div class="lb-rank">5</div><div class="lb-ava" style="background:linear-gradient(135deg,#b14aff,#4a00e0)">🌙</div><div><div class="lb-name">MoonWalker</div><div class="lb-sub">Уровень 28</div></div><div class="lb-score">28 750</div></div>
+      <div class="lb-row" style="background:rgba(255,64,96,.06);border-left:3px solid var(--a1)"><div class="lb-rank" style="color:var(--a1)">23</div><div class="lb-ava" id="lbMyAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)">😎</div><div><div class="lb-name" id="lbMyName">Ты</div><div class="lb-sub">Уровень 7 · Продолжай!</div></div><div class="lb-score" style="color:var(--a1)">6 500</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="page-profile">
+    <div class="ph"><div class="pt">Мой <span>Профиль</span></div></div>
+    <div class="prof-hero">
+      <div class="pba" id="bigAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)" onclick="go('avatar',null)">
+        <span id="bigAvaEmoji">😎</span>
+        <div class="pba-edit">✏️ Изменить</div>
+      </div>
+      <div class="prof-info">
+        <div class="prof-name" id="profName">Гость</div>
+        <div class="prof-tag">#GameZone · Участник с 2026</div>
+        <div>
+          <div class="lv-hdr"><span class="lv-lbl">Уровень</span><span class="lv-num">7</span></div>
+          <div class="xpbar"><div class="xpfill"></div></div>
+          <div class="xptxt">6 500 / 10 000 XP до уровня 8</div>
+        </div>
+        <div class="pstats">
+          <div class="pst"><div class="pst-v">38</div><div class="pst-l">Игр</div></div>
+          <div class="pst"><div class="pst-v" style="color:var(--a3)">1 240</div><div class="pst-l">Очков</div></div>
+          <div class="pst"><div class="pst-v" style="color:var(--a1)">5</div><div class="pst-l">Побед</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sc-title">🏅 Достижения</div>
+      <div class="badges">
+        <div class="badge">🔥 5 дней подряд</div>
+        <div class="badge">🐍 Мастер Змейки</div>
+        <div class="badge">⚡ Реакция 0.2с</div>
+        <div class="badge" style="opacity:.4">🏆 Топ-10 <span style="color:var(--muted);font-size:.7rem">(заблок.)</span></div>
+        <div class="badge" style="opacity:.4">💎 Уровень 20 <span style="color:var(--muted);font-size:.7rem">(заблок.)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="page" id="page-avatar">
+    <div class="ph"><div class="pt">Выбор <span>Аватара</span></div><div class="ps">Нажми на аватар чтобы выбрать, потом сохрани</div></div>
+    <div class="sc">
+      <div class="sc-title">😀 Аватары</div>
+      <div class="avagrid" id="avaGrid"></div>
+    </div>
+    <button class="btn btn-p" style="max-width:220px;margin-top:4px" onclick="saveAvatar()">💾 Сохранить аватар</button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="ph"><div class="pt">Настрой<span>ки</span></div></div>
+    <div class="sgrid">
+      <div class="scard">
+        <div class="scard-t">🔔 Уведомления</div>
+        <div class="trow"><span class="trow-lbl">Новые достижения</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Новые игры</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Ежедневные задания</span><div class="tog" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+      <div class="scard">
+        <div class="scard-t">🎮 Игры</div>
+        <div class="trow"><span class="trow-lbl">Звуки</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Музыка</span><div class="tog" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Анимации</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+      <div class="scard">
+        <div class="scard-t">👤 Аккаунт</div>
+        <div class="fg"><label class="fl">Никнейм</label><input class="fi" id="nickInput" value="Гость" placeholder="Твой никнейм"/></div>
+        <button class="btn btn-p" onclick="saveName()">Сохранить никнейм</button>
+      </div>
+      <div class="scard">
+        <div class="scard-t">🎨 Интерфейс</div>
+        <div class="trow"><span class="trow-lbl">Компактный режим</span><div class="tog" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Показывать XP бар</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="trow"><span class="trow-lbl">Частицы на фоне</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <button class="mcls" onclick="closeAuth()">✕</button>
+    <div class="mt">Привет! 👋</div>
+    <div class="ms">Войди или создай аккаунт бесплатно</div>
+    <div class="mtabs">
+      <button class="mtab active" onclick="switchMtab(this,'loginF')">Войти</button>
+      <button class="mtab" onclick="switchMtab(this,'regF')">Регистрация</button>
+    </div>
+    <div id="loginF">
+      <div class="fg"><label class="fl">Никнейм или Email</label><input class="fi" placeholder="Введи никнейм"/></div>
+      <div class="fg"><label class="fl">Пароль</label><input class="fi" type="password" placeholder="••••••••"/></div>
+      <button class="btn btn-p" onclick="fakeLogin()">Войти 🚀</button>
+      <button class="btn btn-s" onclick="closeAuth()">Продолжить без аккаунта</button>
+    </div>
+    <div id="regF" style="display:none">
+      <div class="fg"><label class="fl">Никнейм</label><input class="fi" id="regName" placeholder="НовыйГеймер123"/></div>
+      <div class="fg"><label class="fl">Email</label><input class="fi" type="email" placeholder="example@mail.ru"/></div>
+      <div class="fg"><label class="fl">Пароль</label><input class="fi" type="password" placeholder="Минимум 6 символов"/></div>
+      <button class="btn btn-p" onclick="fakeReg()">Создать аккаунт 🎮</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Navigation
+function go(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));btn.classList.add('active')}
+  if(window.innerWidth<768) document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function setTab(el){document.querySelectorAll('.tb').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+
+// Modal
+function openAuth(){document.getElementById('authOverlay').classList.add('open')}
+function closeAuth(){document.getElementById('authOverlay').classList.remove('open')}
+function closeModalOut(e){if(e.target===document.getElementById('authOverlay'))closeAuth()}
+function switchMtab(btn,f){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('loginF').style.display='none';
+  document.getElementById('regF').style.display='none';
+  document.getElementById(f).style.display='block';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth()});
+
+// Set username everywhere
+function setName(n){
+  document.getElementById('suName').textContent=n;
+  document.getElementById('heroName').textContent=n;
+  document.getElementById('profName').textContent=n;
+  document.getElementById('nickInput').value=n;
+  document.getElementById('lbMyName').textContent=n;
+}
+
+function saveName(){const n=document.getElementById('nickInput').value.trim();if(n){setName(n);toast('Никнейм сохранён ✅')}}
+function fakeLogin(){closeAuth();toast('Добро пожаловать! 🎮')}
+function fakeReg(){
+  const n=document.getElementById('regName').value.trim()||'Новый игрок';
+  setName(n);closeAuth();toast('Аккаунт создан! Привет, '+n+' 🎉');
+}
+
+// Avatar
+const AVAS=['😎','🦊','🐉','👑','🐺','🌙','🦁','🐼','🐸','🦄','🤖','👾','🧙','💀','🎃','🥷','🐯','🦅','🎯','🔥','💎','⚡','🌟','🎭'];
+const COLS=['linear-gradient(135deg,#ff4060,#b14aff)','linear-gradient(135deg,#00d4ff,#0080ff)','linear-gradient(135deg,#ffe600,#ff8000)','linear-gradient(135deg,#00e676,#009688)','linear-gradient(135deg,#b14aff,#4a00e0)','linear-gradient(135deg,#ff4060,#ff8000)'];
+let selAva={e:'😎',c:COLS[0]};
+
+(function buildGrid(){
+  const g=document.getElementById('avaGrid');
+  AVAS.forEach((e,i)=>{
+    const d=document.createElement('div');
+    d.className='avaopt'+(e==='😎'?' sel':'');
+    d.style.background=COLS[i%COLS.length];
+    d.textContent=e;
+    d.onclick=()=>{document.querySelectorAll('.avaopt').forEach(a=>a.classList.remove('sel'));d.classList.add('sel');selAva={e,c:COLS[i%COLS.length]}};
+    g.appendChild(d);
+  });
+})();
+
+function saveAvatar(){
+  // Sidebar
+  const sa=document.getElementById('suAva');
+  sa.childNodes[0].textContent=selAva.e;
+  sa.style.background=selAva.c;
+  // Big avatar
+  document.getElementById('bigAvaEmoji').textContent=selAva.e;
+  document.getElementById('bigAva').style.background=selAva.c;
+  // Leaderboard my row
+  const lba=document.getElementById('lbMyAva');
+  lba.textContent=selAva.e;
+  lba.style.background=selAva.c;
+  toast('Аватар сохранён '+selAva.e);
+}
+
+// Toast
+function toast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'24px',right:'24px',background:'#1a1a2e',border:'1px solid rgba(255,255,255,.12)',color:'#eeeef5',padding:'13px 20px',borderRadius:'14px',fontWeight:'700',fontSize:'.88rem',zIndex:'9999',animation:'fadeUp .3s ease',boxShadow:'0 10px 30px rgba(0,0,0,.5)',fontFamily:"'Nunito',sans-serif"});
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2200);
+}
+</script>
+</body>
+</html>
