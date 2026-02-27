@@ -700,11 +700,10 @@ header { display: none !important; }
 @media(max-width:600px){.snake-dpad{display:flex}#snakeCanvas{width:320px!important;height:320px!important}}
 </style>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, set, remove, query, limitToLast, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
+<!-- Firebase SDK (compat mode) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyDmHJunmDxYzS-qZfp97BPxf0zqab-reYw",
     authDomain: "gamezone-4315f.firebaseapp.com",
@@ -715,28 +714,26 @@ header { display: none !important; }
     appId: "1:569888631256:web:65dc4d3746ef791a906aad"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
   // ---- CHAT ----
-  function fbSendChat(msg) {
-    push(ref(db, 'chat'), msg);
-  }
+  window.fbSendChat = function(msg) {
+    db.ref('chat').push(msg);
+  };
 
   function fbListenChat() {
-    const chatRef = query(ref(db, 'chat'), orderByChild('ts'), limitToLast(60));
-    onValue(chatRef, (snapshot) => {
+    db.ref('chat').limitToLast(60).on('value', function(snapshot) {
       const container = document.getElementById('chatMessages');
       if (!container) return;
-      container.innerHTML = '<div class="chat-msg system">🎮 Добро пожаловать в чат GameZone!</div>';
-      const msgs = [];
-      snapshot.forEach(child => msgs.push(child.val()));
-      msgs.forEach(msg => {
-        const div = document.createElement('div');
+      container.innerHTML = '<div class="chat-msg system">🎮 Добро пожаловать в чат GameZone!</div><div class="chat-msg system">📜 Правила: уважай других, не спамь!</div>';
+      snapshot.forEach(function(child) {
+        const msg = child.val();
         const isMe = msg.author === (window.playerState ? window.playerState.username : '');
         const isAdmin = msg.author === 'v3nc' || msg.isAdmin;
+        const div = document.createElement('div');
         div.className = 'chat-msg ' + (isAdmin ? 'admin-msg' : isMe ? 'mine' : 'other');
-        div.innerHTML = `<div class="msg-author ${isAdmin?'is-admin':''}">${isAdmin?'👑 ':''}${msg.author}${isAdmin?' [ADMIN]':''} <span class="level-badge">Lv.${msg.level||1}</span></div>${msg.text}<div class="msg-time">${msg.time}</div>`;
+        div.innerHTML = '<div class="msg-author ' + (isAdmin?'is-admin':'') + '">' + (isAdmin?'👑 ':'') + msg.author + (isAdmin?' [ADMIN]':'') + ' <span class="level-badge">Lv.' + (msg.level||1) + '</span></div>' + msg.text + '<div class="msg-time">' + msg.time + '</div>';
         container.appendChild(div);
       });
       container.scrollTop = container.scrollHeight;
@@ -744,87 +741,84 @@ header { display: none !important; }
   }
 
   // ---- TRADES ----
-  function fbSendTrade(trade) {
-    push(ref(db, 'trades'), trade);
-  }
+  window.fbSendTrade = function(trade) {
+    db.ref('trades').push(trade);
+  };
+  window.fbAcceptTrade = function(key) {
+    db.ref('trades/' + key + '/status').set('accepted');
+  };
+  window.fbDeclineTrade = function(key) {
+    db.ref('trades/' + key).remove();
+  };
 
   function fbListenTrades() {
-    onValue(ref(db, 'trades'), (snapshot) => {
+    db.ref('trades').on('value', function(snapshot) {
       window._fbTrades = [];
-      snapshot.forEach(child => window._fbTrades.push({...child.val(), _key: child.key}));
+      snapshot.forEach(function(child) {
+        window._fbTrades.push(Object.assign({}, child.val(), {_key: child.key}));
+      });
       if (typeof renderFbTrades === 'function') renderFbTrades();
     });
   }
 
-  function fbAcceptTrade(key) {
-    set(ref(db, 'trades/' + key + '/status'), 'accepted');
-  }
-
-  function fbDeclineTrade(key) {
-    remove(ref(db, 'trades/' + key));
-  }
-
   // ---- LEADERBOARD ----
-  function fbSetScore(username, level, xp) {
-    set(ref(db, 'players/' + username.replace(/[.#$/[\]]/g,'')), { username, level, xp, ts: Date.now() });
-  }
+  window.fbSetScore = function(username, level, xp) {
+    const key = username.replace(/[.#$\/\[\]]/g, '');
+    db.ref('players/' + key).set({ username: username, level: level, xp: xp, ts: Date.now() });
+  };
 
   function fbListenLeaderboard() {
-    const lbRef = query(ref(db, 'players'), orderByChild('xp'), limitToLast(10));
-    onValue(lbRef, (snapshot) => {
+    db.ref('players').orderByChild('xp').limitToLast(10).on('value', function(snapshot) {
       const players = [];
-      snapshot.forEach(child => players.push(child.val()));
-      players.sort((a,b) => b.xp - a.xp);
+      snapshot.forEach(function(child) { players.push(child.val()); });
+      players.sort(function(a,b){ return b.xp - a.xp; });
       window._fbPlayers = players;
       if (typeof renderFbLeaderboard === 'function') renderFbLeaderboard();
     });
   }
 
-  // ---- ONLINE USERS ----
-  function fbSetOnline(username, level) {
-    const key = username.replace(/[.#$/[\]]/g,'');
-    set(ref(db, 'online/' + key), { username, level, ts: Date.now() });
-    // Remove on disconnect handled by Firebase presence
-  }
+  // ---- ONLINE ----
+  window.fbSetOnline = function(username, level) {
+    const key = username.replace(/[.#$\/\[\]]/g, '');
+    db.ref('online/' + key).set({ username: username, level: level, ts: Date.now() });
+  };
 
   function fbListenOnline() {
-    onValue(ref(db, 'online'), (snapshot) => {
+    db.ref('online').on('value', function(snapshot) {
       const users = [];
-      snapshot.forEach(child => users.push(child.val()));
-      // Filter recent (last 2 min)
-      const recent = users.filter(u => Date.now() - u.ts < 120000);
-      document.getElementById('onlineCount') && (document.getElementById('onlineCount').textContent = recent.length);
+      snapshot.forEach(function(child) { users.push(child.val()); });
+      const recent = users.filter(function(u){ return Date.now() - u.ts < 120000; });
+      const countEl = document.getElementById('onlineCount');
+      if (countEl) countEl.textContent = recent.length || 1;
       const list = document.getElementById('onlineList');
-      if (list) {
-        list.innerHTML = recent.map(u => {
-          const isMe = u.username === (window.playerState ? window.playerState.username : '');
-          const isAdmin = u.username === 'v3nc';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-            <div style="width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0"></div>
-            <span style="flex:1;font-weight:700;font-size:.85rem;color:${isAdmin?'var(--a3)':'var(--text)'}">${isAdmin?'👑 ':''}${u.username}${isMe?' (ты)':''}</span>
-            <span class="level-badge">Lv.${u.level||1}</span>
-          </div>`;
-        }).join('') || '<div style="color:var(--muted);font-size:.8rem">Никого нет онлайн</div>';
+      if (!list) return;
+      if (!recent.length) {
+        const me = window.playerState;
+        recent.push({ username: me ? me.username : 'Гость', level: me ? me.level : 1 });
       }
+      list.innerHTML = recent.map(function(u) {
+        const isMe = window.playerState && u.username === window.playerState.username;
+        const isAdm = u.username === 'v3nc';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+          + '<div style="width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0"></div>'
+          + '<span style="flex:1;font-weight:700;font-size:.85rem;color:' + (isAdm?'var(--a3)':'var(--text)') + '">' + (isAdm?'👑 ':'') + u.username + (isMe?' (ты)':'') + '</span>'
+          + '<span class="level-badge">Lv.' + (u.level||1) + '</span></div>';
+      }).join('');
     });
   }
 
-  // Expose to window
-  window.fbSendChat = fbSendChat;
-  window.fbSendTrade = fbSendTrade;
-  window.fbAcceptTrade = fbAcceptTrade;
-  window.fbDeclineTrade = fbDeclineTrade;
-  window.fbSetScore = fbSetScore;
-  window.fbSetOnline = fbSetOnline;
-
-  // Start listeners
-  fbListenChat();
-  fbListenTrades();
-  fbListenLeaderboard();
-  fbListenOnline();
-
-  window._fbReady = true;
+  // Start all listeners after page loads
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      fbListenChat();
+      fbListenTrades();
+      fbListenLeaderboard();
+      fbListenOnline();
+      console.log('Firebase connected!');
+    }, 500);
+  });
 </script>
+
 </head>
 <body>
 <div class="bg-glow"></div>
