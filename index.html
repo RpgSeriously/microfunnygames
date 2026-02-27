@@ -1563,7 +1563,9 @@ window.addEventListener('load', function() {
 // ===== SITE NAVIGATION =====
 function go(id, btn) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById("page-" + id).classList.add("active");
+  const pageEl = document.getElementById("page-" + id);
+  if (!pageEl) { console.warn("Page not found: page-" + id); return; }
+  pageEl.classList.add("active");
   if (btn) {
     document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
     btn.classList.add("active");
@@ -1591,8 +1593,19 @@ function setName(n) {
   document.getElementById("lbMyName").textContent = n;
 }
 function saveName() { const n = document.getElementById("nickInput").value.trim(); if (n) { setName(n); toast("Никнейм сохранён ✅"); } }
-function fakeLogin() { closeAuth(); toast("Добро пожаловать! 🎮"); }
-function fakeReg() { const n = document.getElementById("regName").value.trim() || "Новый игрок"; setName(n); closeAuth(); toast("Аккаунт создан! Привет, " + n + " 🎉"); }
+function fakeLogin() {
+  const inp = document.querySelector("#loginF .fi");
+  const n = inp ? inp.value.trim() : '';
+  if (n) setName(n);
+  closeAuth();
+  toast("Добро пожаловать" + (n ? ", " + n : "") + "! 🎮");
+}
+function fakeReg() {
+  const n = document.getElementById("regName").value.trim() || "Новый игрок";
+  setName(n);
+  closeAuth();
+  toast("Аккаунт создан! Привет, " + n + " 🎉");
+}
 
 // Real image avatars
 const IMG_AVAS = [
@@ -2916,17 +2929,19 @@ function updateAllXPBars() {
 }
 
 // Override setName to also update playerState
-const _origSetName = typeof setName === 'function' ? setName : null;
 function setName(n) {
   playerState.username = n;
   localStorage.setItem('gz_username', n);
   playerState.isAdmin = (n.toLowerCase() === 'v3nc');
-  if (_origSetName) _origSetName(n);
-  document.getElementById('suName').textContent = n;
-  document.getElementById('heroName').textContent = n;
-  document.getElementById('profName').textContent = n;
-  document.getElementById('nickInput').value = n;
-  document.getElementById('lbMyName').textContent = n;
+  const els = {
+    suName: n, heroName: n, profName: n, nickInput: n, lbMyName: n
+  };
+  for (const [id, val] of Object.entries(els)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+  const ni = document.getElementById('nickInput');
+  if (ni) ni.value = n;
   updateAdminVisibility();
   updateAllXPBars();
 }
@@ -3236,13 +3251,21 @@ function adminClearTrades() {
 const _origGo = go;
 window.go = function(id, btn) {
   _origGo(id, btn);
-  if (id === 'trades') { updateTradeInventory(); renderTrades(); }
-  if (id === 'chat') { loadChatMessages(); renderOnlineUsers(); }
+  if (id === 'trades') {
+    updateTradeInventory();
+    if (window._fbTrades) renderFbTrades(); else renderTrades();
+  }
+  if (id === 'chat') {
+    fbListenOnline && fbListenOnline();
+  }
   if (id === 'admin') {
-    if (!playerState.isAdmin) { go('home', null); toast('🚫 Доступ запрещён!'); return; }
-    document.getElementById('adminOnline').textContent = '5';
-    document.getElementById('adminMsgs').textContent = chatMessages.length;
-    document.getElementById('adminTrades').textContent = tradesData.filter(t=>t.status==='pending').length;
+    if (!playerState.isAdmin) { window.go('home', null); toast('🚫 Доступ запрещён!'); return; }
+    const ao = document.getElementById('adminOnline');
+    const am = document.getElementById('adminMsgs');
+    const at = document.getElementById('adminTrades');
+    if (ao) ao.textContent = '5';
+    if (am) am.textContent = chatMessages ? chatMessages.length : 0;
+    if (at) at.textContent = (window._fbTrades||tradesData).filter(t=>t.status==='pending').length;
   }
 };
 </script>
@@ -3252,8 +3275,11 @@ function renderFbTrades() {
   const trades = window._fbTrades || [];
   const myOut = trades.filter(t => t.from === playerState.username);
   const myIn = trades.filter(t => t.to === playerState.username);
-  document.getElementById('tradeOutCount').textContent = myOut.length;
-  document.getElementById('tradeInCount').textContent = myIn.length;
+  const outCount = document.getElementById('tradeOutCount');
+  const inCount = document.getElementById('tradeInCount');
+  if (!outCount || !inCount) return; // page not visible
+  outCount.textContent = myOut.length;
+  inCount.textContent = myIn.length;
   const renderList = (items, container, isIncoming) => {
     if (!items.length) { container.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">Нет трейдов</div>`; return; }
     container.innerHTML = items.map(t => `
