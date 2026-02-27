@@ -689,6 +689,16 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
 /* Override game header since we have sidebar */
 header { display: none !important; }
 </style>
+
+<style>
+.snake-diff-btn{padding:8px 20px;border-radius:100px;border:1px solid var(--border);background:none;color:var(--muted);font-family:"Nunito",sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s}
+.snake-diff-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+.snake-diff-btn.active{background:linear-gradient(90deg,var(--a1),var(--a4));border-color:transparent;color:#fff}
+.snake-dpad{display:none;flex-direction:column;align-items:center;gap:8px}
+.snake-dpad button{width:52px;height:52px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.2rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.snake-dpad button:active{background:var(--card2);transform:scale(.92)}
+@media(max-width:600px){.snake-dpad{display:flex}#snakeCanvas{width:320px!important;height:320px!important}}
+</style>
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -696,20 +706,36 @@ header { display: none !important; }
 <button class="ham" onclick="toggleSidebar()">☰</button>
 
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-logo">GAME<em>ZONE</em></div>
+  <div class="sidebar-logo">GAME<em>ZONE</em>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button onclick="toggleTheme()" id="themeBtn" title="Сменить тему" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif">🌙</button>
+    <button onclick="toggleLang()" id="langBtn" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:800;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif">RU</button>
+  </div>
+</div>
   <nav class="sidebar-nav">
     <div class="nav-label">Главная</div>
-    <button class="nav-item active" onclick="go('home',this)"><span class="ni">🏠</span>Главная</button>
-    <button class="nav-item" onclick="go('games',this)"><span class="ni">🎮</span>Все игры<span class="nav-badge g">5</span></button>
-    <button class="nav-item" onclick="go('leaderboard',this)"><span class="ni">🏆</span>Таблица лидеров</button>
+    <button class="nav-item active" onclick="go('home',this)"><span class="ni">🏠</span><span id="navHome">Главная</span></button>
+    <button class="nav-item" onclick="go('games',this)"><span class="ni">🎮</span><span id="navGames">Все игры</span><span class="nav-badge g">5</span></button>
+    <button class="nav-item" onclick="go('leaderboard',this)"><span class="ni">🏆</span><span id="navLb">Таблица лидеров</span></button>
     <div class="nav-label" style="margin-top:8px">Игры</div>
-    <button class="nav-item" id="caseNavBtn" onclick="go('casegame',this)"><span class="ni">🎰</span>Симулятор кейсов<span class="nav-badge" style="background:var(--a4)">ИГРАТЬ</span></button>
+    <button class="nav-item" id="caseNavBtn" onclick="go('casegame',this)"><span class="ni">🎰</span><span id="navCases">Симулятор кейсов</span><span class="nav-badge" style="background:var(--a4)">ИГРАТЬ</span></button>
+    <button class="nav-item" id="snakeNavBtn" onclick="go('snake',this)"><span class="ni">🐍</span><span id="navSnake">Змейка</span><span class="nav-badge g">NEW</span></button>
+    <button class="nav-item" id="tetrisNavBtn" onclick="go('tetris',this)"><span class="ni">🧱</span><span id="navTetris">Тетрис</span><span class="nav-badge g">NEW</span></button>
+    <button class="nav-item" id="reactNavBtn" onclick="go('reaction',this)"><span class="ni">⚡</span><span id="navReaction">Реакция</span><span class="nav-badge g">NEW</span></button>
+    <div class="nav-label" style="margin-top:8px">Сообщество</div>
+    <button class="nav-item" onclick="go('chat',this)"><span class="ni">💬</span><span id="navChat">Чат</span><span class="ndot" id="chatDot" style="display:none"></span></button>
+    <button class="nav-item" onclick="go('trades',this)"><span class="ni">🤝</span><span id="navTrades">Трейды</span></button>
     <div class="nav-label" style="margin-top:8px">Профиль</div>
-    <button class="nav-item" onclick="go('profile',this)"><span class="ni">👤</span>Мой профиль</button>
-    <button class="nav-item" onclick="go('avatar',this)"><span class="ni">🎨</span>Выбор аватара</button>
-    <button class="nav-item" onclick="go('settings',this)"><span class="ni">⚙️</span>Настройки<span class="ndot"></span></button>
+    <button class="nav-item" onclick="go('profile',this)"><span class="ni">👤</span><span id="navProfile">Мой профиль</span></button>
+    <button class="nav-item" onclick="go('avatar',this)"><span class="ni">🎨</span><span id="navAvatar">Выбор аватара</span></button>
+    <button class="nav-item" onclick="go('settings',this)"><span class="ni">⚙️</span><span id="navSettings">Настройки</span><span class="ndot"></span></button>
     <div class="nav-label" style="margin-top:8px">Аккаунт</div>
-    <button class="nav-item" onclick="openAuth()"><span class="ni">🔑</span>Войти / Регистрация</button>
+    <button class="nav-item" onclick="openAuth()"><span class="ni">🔑</span><span id="navAuth">Войти / Регистрация</span></button>
+    <div style="margin:12px 16px 0">
+      <a href="https://www.donationalerts.com/r/SupportMePls" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:14px;background:linear-gradient(135deg,#ff4060,#ff8c00);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:.88rem;text-decoration:none;letter-spacing:.5px;transition:opacity .2s;box-shadow:0 4px 20px rgba(255,64,96,.3)" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <span id="navSupport">❤️ Поддержать сайт</span>
+      </a>
+    </div>
   </nav>
   <div class="su" onclick="go('profile',null)">
     <div class="su-ava" id="suAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)">😎<div class="dot"></div></div>
@@ -725,7 +751,7 @@ header { display: none !important; }
 
   <!-- HOME -->
   <div class="page active page-padded" id="page-home">
-    <div class="ph"><div class="pt">Привет, <span id="heroName">Игрок</span>!</div><div class="ps">Выбери игру и начни зарабатывать очки 🎯</div></div>
+    <div class="ph"><div class="pt"><span id="heroGreeting">Привет,</span> <span id="heroName">Игрок</span>!</div><div class="ps" id="heroSub">Выбери игру и начни зарабатывать очки 🎯</div></div>
     <div class="qs">
       <div class="qcard"><div style="font-size:2rem">🏆</div><div><div class="qcard-val" style="color:var(--a3)">1 240</div><div class="qcard-lbl">Очки</div></div></div>
       <div class="qcard"><div style="font-size:2rem">🎮</div><div><div class="qcard-val" style="color:var(--a2)">38</div><div class="qcard-lbl">Игр сыграно</div></div></div>
@@ -739,9 +765,9 @@ header { display: none !important; }
           <div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div>
           <div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы, собирай предметы!</div><div class="gmeta"><span class="gtag hot">🔥 Хит</span><span class="gstars">★ 4.9</span></div></div>
         </div>
-        <div class="gc" onclick="toast('Скоро! 🛠️')">
+        <div class="gc" onclick="go('snake',null)">
           <div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div>
-          <div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Собирай еду, не врезайся!</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.8</span></div></div>
+          <div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Собирай еду, не врезайся!</div><div class="gmeta"><span class="gtag hot">Играть!</span><span class="gstars">★ 4.8</span></div></div>
         </div>
         <div class="gc" onclick="toast('Скоро! 🛠️')">
           <div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div>
@@ -769,9 +795,9 @@ header { display: none !important; }
         <div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div>
         <div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы, прокачивай аккаунт</div><div class="gmeta"><span class="gtag hot">Хит</span><span class="gstars">★ 4.9</span></div></div>
       </div>
-      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Классика всех времён</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.8</span></div></div></div>
-      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.9</span></div></div></div>
-      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Тест рефлексов</div><div class="gmeta"><span class="gtag new">Новое</span><span class="gstars">★ 4.6</span></div></div></div>
+      <div class="gc" onclick="go('snake',null)"><div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Классика всех времён</div><div class="gmeta"><span class="gtag hot">Играть!</span><span class="gstars">★ 4.8</span></div></div></div>
+      <div class="gc" onclick="go('tetris',null)"><div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки</div><div class="gmeta"><span class="gtag hot">Играть!</span><span class="gstars">★ 4.9</span></div></div></div>
+      <div class="gc" onclick="go('reaction',null)"><div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Тест рефлексов</div><div class="gmeta"><span class="gtag hot">Играть!</span><span class="gstars">★ 4.6</span></div></div></div>
       <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a001a,#3a0060)">🧩<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Память</div><div class="gdesc">Найди пары карточек</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.5</span></div></div></div>
     </div>
   </div>
@@ -1091,6 +1117,136 @@ header { display: none !important; }
 }
 .admin-quick-btn:hover { border-color: var(--blue); color: var(--blue); }
 </style>
+  </div>
+
+
+  <!-- SNAKE GAME -->
+  <div class="page" id="page-snake">
+    <div class="game-topbar">
+      <button class="game-back-btn" onclick="go('home',null); snakeStop()">← Назад</button>
+      <div class="game-title-bar">🐍 ЗМЕЙКА</div>
+      <div style="margin-left:auto;display:flex;gap:16px;align-items:center">
+        <div style="font-family:'Orbitron',monospace;font-size:.8rem;color:var(--muted)">СЧЁТ: <span id="snakeScore" style="color:var(--a3)">0</span></div>
+        <div style="font-family:'Orbitron',monospace;font-size:.8rem;color:var(--muted)">РЕКОРД: <span id="snakeBest" style="color:var(--a2)">0</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:24px;gap:16px">
+      <!-- Difficulty -->
+      <div style="display:flex;gap:10px">
+        <button class="snake-diff-btn active" onclick="setSnakeDiff('easy',this)">🟢 Легко</button>
+        <button class="snake-diff-btn" onclick="setSnakeDiff('normal',this)">🟡 Нормально</button>
+        <button class="snake-diff-btn" onclick="setSnakeDiff('hard',this)">🔴 Сложно</button>
+      </div>
+
+      <!-- Canvas -->
+      <div style="position:relative">
+        <canvas id="snakeCanvas" width="400" height="400" style="border:2px solid rgba(255,255,255,.08);border-radius:12px;display:block;background:#0a0c10"></canvas>
+        <!-- Overlay: start/gameover -->
+        <div id="snakeOverlay" style="position:absolute;inset:0;border-radius:12px;background:rgba(8,8,16,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+          <div id="snakeOverlayIcon" style="font-size:4rem">🐍</div>
+          <div id="snakeOverlayTitle" style="font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:3px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ЗМЕЙКА</div>
+          <div id="snakeOverlaySub" style="color:var(--muted);font-size:.9rem;text-align:center;max-width:280px">Управляй стрелками или WASD.<br>Ешь еду, не врезайся!</div>
+          <button onclick="snakeStart()" style="background:linear-gradient(90deg,var(--a1),var(--a4));color:#fff;border:none;border-radius:14px;padding:14px 40px;font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;cursor:pointer;letter-spacing:1px;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">▶ ИГРАТЬ</button>
+        </div>
+      </div>
+
+      <!-- Mobile controls -->
+      <div class="snake-dpad">
+        <button onclick="snakeDir(0,-1)">▲</button>
+        <div style="display:flex;gap:8px">
+          <button onclick="snakeDir(-1,0)">◀</button>
+          <button onclick="snakeDir(1,0)">▶</button>
+        </div>
+        <button onclick="snakeDir(0,1)">▼</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TETRIS -->
+  <div class="page" id="page-tetris">
+    <div class="game-topbar">
+      <button class="game-back-btn" onclick="go('home',null);tetrisStop()">← Назад</button>
+      <div class="game-title-bar">🧱 ТЕТРИС</div>
+      <div style="margin-left:auto;display:flex;gap:20px;align-items:center">
+        <div style="font-family:'Orbitron',monospace;font-size:.8rem;color:var(--muted)">СЧЁТ: <span id="tetScore" style="color:var(--a3)">0</span></div>
+        <div style="font-family:'Orbitron',monospace;font-size:.8rem;color:var(--muted)">РЕКОРД: <span id="tetBest" style="color:var(--a2)">0</span></div>
+        <div style="font-family:'Orbitron',monospace;font-size:.8rem;color:var(--muted)">ЛИНИИ: <span id="tetLines" style="color:var(--a1)">0</span></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:24px;padding:24px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+        <div style="position:relative">
+          <canvas id="tetCanvas" width="240" height="480" style="border:2px solid rgba(255,255,255,.08);border-radius:12px;display:block;background:#0a0c10"></canvas>
+          <div id="tetOverlay" style="position:absolute;inset:0;border-radius:12px;background:rgba(8,8,16,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+            <div style="font-size:3rem">🧱</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:3px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="tetOverlayTitle">ТЕТРИС</div>
+            <div style="color:var(--muted);font-size:.85rem;text-align:center" id="tetOverlaySub">Стрелки — движение<br>↑ или W — поворот<br>Пробел — сброс</div>
+            <button onclick="tetrisStart()" style="background:linear-gradient(90deg,var(--a1),var(--a4));color:#fff;border:none;border-radius:14px;padding:12px 36px;font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;cursor:pointer">▶ ИГРАТЬ</button>
+          </div>
+        </div>
+        <!-- Mobile controls -->
+        <div class="snake-dpad" id="tetDpad">
+          <button onclick="tetMove(0,-1)">↑ Поворот</button>
+          <div style="display:flex;gap:8px">
+            <button onclick="tetMove(-1,0)">◀</button>
+            <button onclick="tetDrop()">▼▼</button>
+            <button onclick="tetMove(1,0)">▶</button>
+          </div>
+          <button onclick="tetMove(0,1)">▼</button>
+        </div>
+      </div>
+      <!-- Side panel -->
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:120px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px">
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">СЛЕДУЮЩАЯ</div>
+          <canvas id="tetNext" width="100" height="100" style="border-radius:8px;background:#0a0c10"></canvas>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px">
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">УРОВЕНЬ</div>
+          <div id="tetLevel" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--a4)">1</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:.75rem;color:var(--muted);line-height:1.8">
+          <div style="font-weight:800;color:var(--text);margin-bottom:6px">Управление</div>
+          ← → Движение<br>↑/W Поворот<br>↓ Быстрее<br>Пробел Сброс<br>P Пауза
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REACTION GAME -->
+  <div class="page" id="page-reaction">
+    <div class="game-topbar">
+      <button class="game-back-btn" onclick="go('home',null)">← Назад</button>
+      <div class="game-title-bar">⚡ ИГРА НА РЕАКЦИЮ</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;padding:32px;gap:24px">
+      <div id="reactionBox" onclick="reactionClick()"
+        style="width:min(400px,90vw);height:280px;border-radius:20px;background:var(--card);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:background .15s,transform .1s;user-select:none"
+        onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'">
+        <div id="reactionEmoji" style="font-size:4rem">⚡</div>
+        <div id="reactionTitle" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--text)">ТЕСТ РЕАКЦИИ</div>
+        <div id="reactionSub" style="color:var(--muted);font-size:.9rem;text-align:center;max-width:280px">Нажми когда экран станет зелёным!</div>
+      </div>
+
+      <!-- Results -->
+      <div id="reactionResults" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;width:min(400px,90vw)">
+        <div style="font-weight:900;margin-bottom:14px;font-size:1rem">📊 Результаты</div>
+        <div id="reactionResultsList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button onclick="reactionReset()" style="flex:1;padding:11px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--text);font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer">Сбросить</button>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;width:min(400px,90vw)">
+        <div style="font-weight:900;margin-bottom:12px">🏆 Рекорды</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--green)" id="reactBest">—</div><div style="font-size:.7rem;color:var(--muted)">Лучшее</div></div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--a2)" id="reactAvg">—</div><div style="font-size:.7rem;color:var(--muted)">Среднее</div></div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--a3)" id="reactAttempts">0</div><div style="font-size:.7rem;color:var(--muted)">Попыток</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- PROFILE -->
@@ -1904,6 +2060,932 @@ function adminResetAll() {
 
 renderUI();
 
+</script>
+
+<script>
+// ===== SNAKE GAME =====
+const SNAKE_COLS = 20;
+const SNAKE_ROWS = 20;
+const DIFF_SPEEDS = { easy: 160, normal: 110, hard: 65 };
+let snakeDiff = 'easy';
+let snakeInterval = null;
+let snakeRunning = false;
+let snake, dir, nextDir, food, score, bestScore;
+
+function setSnakeDiff(d, btn) {
+  snakeDiff = d;
+  document.querySelectorAll('.snake-diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function snakeStart() {
+  document.getElementById('snakeOverlay').style.display = 'none';
+  snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  dir = {x:1,y:0};
+  nextDir = {x:1,y:0};
+  score = 0;
+  bestScore = parseInt(localStorage.getItem('snakeBest')||'0');
+  document.getElementById('snakeScore').textContent = '0';
+  document.getElementById('snakeBest').textContent = bestScore;
+  placeFood();
+  snakeRunning = true;
+  if (snakeInterval) clearInterval(snakeInterval);
+  snakeInterval = setInterval(snakeTick, DIFF_SPEEDS[snakeDiff]);
+  snakeDraw();
+}
+
+function snakeStop() {
+  snakeRunning = false;
+  if (snakeInterval) { clearInterval(snakeInterval); snakeInterval = null; }
+}
+
+function placeFood() {
+  let pos;
+  do {
+    pos = {x: Math.floor(Math.random()*SNAKE_COLS), y: Math.floor(Math.random()*SNAKE_ROWS)};
+  } while (snake.some(s => s.x===pos.x && s.y===pos.y));
+  food = pos;
+}
+
+function snakeDir(dx, dy) {
+  if (!snakeRunning) return;
+  if (dx !== 0 && dir.x !== 0) return;
+  if (dy !== 0 && dir.y !== 0) return;
+  nextDir = {x:dx, y:dy};
+}
+
+function snakeTick() {
+  dir = nextDir;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+  // Wall collision
+  if (head.x < 0 || head.x >= SNAKE_COLS || head.y < 0 || head.y >= SNAKE_ROWS) {
+    return snakeGameOver();
+  }
+  // Self collision
+  if (snake.some(s => s.x===head.x && s.y===head.y)) {
+    return snakeGameOver();
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score += 10;
+    document.getElementById('snakeScore').textContent = score;
+    if (score > bestScore) {
+      bestScore = score;
+      localStorage.setItem('snakeBest', bestScore);
+      document.getElementById('snakeBest').textContent = bestScore;
+    }
+    placeFood();
+  } else {
+    snake.pop();
+  }
+  snakeDraw();
+}
+
+function snakeGameOver() {
+  snakeStop();
+  const ov = document.getElementById('snakeOverlay');
+  document.getElementById('snakeOverlayIcon').textContent = '💀';
+  document.getElementById('snakeOverlayTitle').textContent = 'КОНЕЦ!';
+  document.getElementById('snakeOverlaySub').innerHTML = 'Твой счёт: <span style="color:var(--a3);font-family:Orbitron,monospace;font-size:1.2rem">' + score + '</span><br>Рекорд: <span style="color:var(--a2)">' + bestScore + '</span>';
+  ov.style.display = 'flex';
+}
+
+function snakeDraw() {
+  const canvas = document.getElementById('snakeCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cw = W / SNAKE_COLS, ch = H / SNAKE_ROWS;
+
+  // Background
+  ctx.fillStyle = '#0a0c10';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,.03)';
+  ctx.lineWidth = 0.5;
+  for (let i=0;i<=SNAKE_COLS;i++){ctx.beginPath();ctx.moveTo(i*cw,0);ctx.lineTo(i*cw,H);ctx.stroke();}
+  for (let j=0;j<=SNAKE_ROWS;j++){ctx.beginPath();ctx.moveTo(0,j*ch);ctx.lineTo(W,j*ch);ctx.stroke();}
+
+  // Food glow
+  ctx.shadowColor = '#ff4060';
+  ctx.shadowBlur = 15;
+  ctx.fillStyle = '#ff4060';
+  ctx.beginPath();
+  ctx.roundRect(food.x*cw+2, food.y*ch+2, cw-4, ch-4, 4);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Snake
+  snake.forEach((seg, i) => {
+    const t = i / snake.length;
+    const r = Math.round(0 + t*0);
+    const g = Math.round(230 - t*100);
+    const b = Math.round(120 - t*80);
+    ctx.shadowColor = i===0 ? 'rgba(0,230,118,.6)' : 'none';
+    ctx.shadowBlur = i===0 ? 12 : 0;
+    ctx.fillStyle = i===0 ? '#00e676' : `rgb(${r},${g},${b})`;
+    const pad = i===0 ? 1 : 2;
+    ctx.beginPath();
+    ctx.roundRect(seg.x*cw+pad, seg.y*ch+pad, cw-pad*2, ch-pad*2, i===0?6:3);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Eyes on head
+    if (i===0) {
+      ctx.fillStyle = '#000';
+      const ex = seg.x*cw + cw/2;
+      const ey = seg.y*ch + ch/2;
+      ctx.beginPath(); ctx.arc(ex-3, ey-3, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex+3, ey-3, 2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(ex-2.5, ey-3.5, 0.8, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex+3.5, ey-3.5, 0.8, 0, Math.PI*2); ctx.fill();
+    }
+  });
+}
+
+// Keyboard controls
+document.addEventListener('keydown', e => {
+  if (!snakeRunning) return;
+  const map = {
+    ArrowUp:{x:0,y:-1}, ArrowDown:{x:0,y:1}, ArrowLeft:{x:-1,y:0}, ArrowRight:{x:1,y:0},
+    w:{x:0,y:-1}, s:{x:0,y:1}, a:{x:-1,y:0}, d:{x:1,y:0},
+    W:{x:0,y:-1}, S:{x:0,y:1}, A:{x:-1,y:0}, D:{x:1,y:0}
+  };
+  const nd = map[e.key];
+  if (nd) { e.preventDefault(); snakeDir(nd.x, nd.y); }
+});
+</script>
+
+<style>
+/* Light theme */
+body.light-theme {
+  --bg:#f0f2f8;--bg2:#e4e8f4;--card:#fff;--card2:#eef0f8;
+  --border:#d0d4e8;--text:#1a1a2e;--muted:#7a7a9a;
+}
+body.light-theme .bg-glow{opacity:.3}
+body.light-theme .bg-grid{opacity:.4}
+</style>
+
+<script>
+// ===== THEME =====
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+  const btn = document.getElementById('themeBtn');
+  btn.textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+  localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+}
+(function(){
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-theme');
+    document.getElementById('themeBtn').textContent = '☀️';
+  }
+})();
+
+// ===== LANGUAGE =====
+const LANGS = {
+  ru: {
+    home:'Главная', games:'Все игры', leaderboard:'Таблица лидеров',
+    cases:'Симулятор кейсов', snake:'Змейка', tetris:'Тетрис', reaction:'Реакция',
+    profile:'Мой профиль', avatar:'Выбор аватара', settings:'Настройки',
+    auth:'Войти / Регистрация', support:'❤️ Поддержать сайт',
+    greeting:'Привет,', subtitle:'Выбери игру и начни зарабатывать очки 🎯'
+  },
+  en: {
+    home:'Home', games:'All Games', leaderboard:'Leaderboard',
+    cases:'Case Simulator', snake:'Snake', tetris:'Tetris', reaction:'Reaction',
+    profile:'My Profile', avatar:'Choose Avatar', settings:'Settings',
+    auth:'Login / Register', support:'❤️ Support Site',
+    greeting:'Hello,', subtitle:'Choose a game and start earning points 🎯'
+  }
+};
+let curLang = localStorage.getItem('lang') || 'ru';
+function toggleLang() {
+  curLang = curLang === 'ru' ? 'en' : 'ru';
+  localStorage.setItem('lang', curLang);
+  applyLang();
+}
+function applyLang() {
+  const L = LANGS[curLang];
+  document.getElementById('langBtn').textContent = curLang === 'ru' ? 'RU' : 'EN';
+  // Update nav items text
+  const navTexts = {
+    'navHome': L.home, 'navGames': L.games, 'navLb': L.leaderboard,
+    'navCases': L.cases, 'navSnake': L.snake, 'navTetris': L.tetris,
+    'navReaction': L.reaction, 'navProfile': L.profile, 'navAvatar': L.avatar,
+    'navSettings': L.settings, 'navAuth': L.auth, 'navSupport': L.support
+  };
+  for (const [id, text] of Object.entries(navTexts)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  const greet = document.getElementById('heroGreeting');
+  if (greet) greet.textContent = L.greeting;
+  const sub = document.getElementById('heroSub');
+  if (sub) sub.textContent = L.subtitle;
+}
+(function(){ applyLang(); })();
+
+// ===== TETRIS =====
+const TET_COLS = 10, TET_ROWS = 20;
+const PIECES = [
+  { shape:[[1,1,1,1]], color:'#00d4ff' },           // I
+  { shape:[[1,1],[1,1]], color:'#ffe600' },           // O
+  { shape:[[0,1,0],[1,1,1]], color:'#b14aff' },       // T
+  { shape:[[1,0,0],[1,1,1]], color:'#ff8c00' },       // L
+  { shape:[[0,0,1],[1,1,1]], color:'#4f9eff' },       // J
+  { shape:[[0,1,1],[1,1,0]], color:'#00e676' },       // S
+  { shape:[[1,1,0],[0,1,1]], color:'#ff4060' },       // Z
+];
+
+let tetBoard, tetPiece, tetNext, tetScore2, tetLines2, tetLevel2, tetBest2, tetRunning, tetPaused, tetInterval2;
+
+function tetrisStart() {
+  tetBoard = Array.from({length:TET_ROWS}, () => Array(TET_COLS).fill(0));
+  tetScore2 = 0; tetLines2 = 0; tetLevel2 = 1;
+  tetBest2 = parseInt(localStorage.getItem('tetBest')||'0');
+  tetRunning = true; tetPaused = false;
+  document.getElementById('tetOverlay').style.display = 'none';
+  document.getElementById('tetScore').textContent = '0';
+  document.getElementById('tetBest').textContent = tetBest2;
+  document.getElementById('tetLines').textContent = '0';
+  document.getElementById('tetLevel').textContent = '1';
+  tetNext = randomPiece();
+  tetSpawn();
+  if (tetInterval2) clearInterval(tetInterval2);
+  tetInterval2 = setInterval(tetTick, 500);
+  // Show mobile dpad
+  const dp = document.getElementById('tetDpad');
+  if (dp) dp.style.display = 'flex';
+}
+
+function tetrisStop() {
+  tetRunning = false;
+  if (tetInterval2) { clearInterval(tetInterval2); tetInterval2 = null; }
+}
+
+function randomPiece() {
+  const p = PIECES[Math.floor(Math.random()*PIECES.length)];
+  return { shape: p.shape.map(r=>[...r]), color: p.color, x: Math.floor(TET_COLS/2)-1, y: 0 };
+}
+
+function tetSpawn() {
+  tetPiece = tetNext;
+  tetPiece.x = Math.floor(TET_COLS/2) - Math.floor(tetPiece.shape[0].length/2);
+  tetPiece.y = 0;
+  tetNext = randomPiece();
+  tetDrawNext();
+  if (tetCollide(tetPiece, 0, 0)) {
+    tetGameOver();
+  }
+}
+
+function tetCollide(p, dx, dy, newShape) {
+  const shape = newShape || p.shape;
+  for (let r=0; r<shape.length; r++) {
+    for (let c=0; c<shape[r].length; c++) {
+      if (!shape[r][c]) continue;
+      const nx = p.x+c+dx, ny = p.y+r+dy;
+      if (nx<0||nx>=TET_COLS||ny>=TET_ROWS) return true;
+      if (ny>=0 && tetBoard[ny][nx]) return true;
+    }
+  }
+  return false;
+}
+
+function tetRotate(shape) {
+  return shape[0].map((_,i)=>shape.map(r=>r[i]).reverse());
+}
+
+function tetTick() {
+  if (!tetRunning || tetPaused) return;
+  if (!tetCollide(tetPiece, 0, 1)) {
+    tetPiece.y++;
+  } else {
+    tetLock();
+    tetClearLines();
+    tetSpawn();
+  }
+  tetDraw();
+}
+
+function tetMove(dx, dy) {
+  if (!tetRunning || tetPaused) return;
+  if (dy === -1) { // rotate
+    const rot = tetRotate(tetPiece.shape);
+    if (!tetCollide(tetPiece, 0, 0, rot)) tetPiece.shape = rot;
+  } else {
+    if (!tetCollide(tetPiece, dx, dy)) { tetPiece.x+=dx; tetPiece.y+=dy; }
+  }
+  tetDraw();
+}
+
+function tetDrop() {
+  if (!tetRunning || tetPaused) return;
+  while (!tetCollide(tetPiece, 0, 1)) tetPiece.y++;
+  tetLock(); tetClearLines(); tetSpawn(); tetDraw();
+}
+
+function tetLock() {
+  for (let r=0; r<tetPiece.shape.length; r++)
+    for (let c=0; c<tetPiece.shape[r].length; c++)
+      if (tetPiece.shape[r][c] && tetPiece.y+r>=0)
+        tetBoard[tetPiece.y+r][tetPiece.x+c] = tetPiece.color;
+}
+
+function tetClearLines() {
+  let cleared = 0;
+  for (let r=TET_ROWS-1; r>=0; r--) {
+    if (tetBoard[r].every(c=>c)) {
+      tetBoard.splice(r,1);
+      tetBoard.unshift(Array(TET_COLS).fill(0));
+      cleared++; r++;
+    }
+  }
+  if (cleared) {
+    const pts = [0,100,300,500,800][cleared] * tetLevel2;
+    tetScore2 += pts;
+    tetLines2 += cleared;
+    tetLevel2 = Math.floor(tetLines2/10)+1;
+    if (tetScore2 > tetBest2) { tetBest2=tetScore2; localStorage.setItem('tetBest',tetBest2); }
+    document.getElementById('tetScore').textContent = tetScore2;
+    document.getElementById('tetBest').textContent = tetBest2;
+    document.getElementById('tetLines').textContent = tetLines2;
+    document.getElementById('tetLevel').textContent = tetLevel2;
+    clearInterval(tetInterval2);
+    tetInterval2 = setInterval(tetTick, Math.max(100, 500-tetLevel2*40));
+  }
+}
+
+function tetGameOver() {
+  tetrisStop();
+  const ov = document.getElementById('tetOverlay');
+  ov.style.display = 'flex';
+  document.getElementById('tetOverlayTitle').textContent = 'КОНЕЦ!';
+  document.getElementById('tetOverlaySub').innerHTML = 'Счёт: <span style="color:var(--a3);font-family:Orbitron,monospace">' + tetScore2 + '</span><br>Рекорд: <span style="color:var(--a2)">' + tetBest2 + '</span>';
+}
+
+function tetDraw() {
+  const canvas = document.getElementById('tetCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cw = canvas.width/TET_COLS, ch = canvas.height/TET_ROWS;
+  ctx.fillStyle='#0a0c10'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=0.5;
+  for(let i=0;i<=TET_COLS;i++){ctx.beginPath();ctx.moveTo(i*cw,0);ctx.lineTo(i*cw,canvas.height);ctx.stroke();}
+  for(let j=0;j<=TET_ROWS;j++){ctx.beginPath();ctx.moveTo(0,j*ch);ctx.lineTo(canvas.width,j*ch);ctx.stroke();}
+  // Board
+  for(let r=0;r<TET_ROWS;r++) for(let c=0;c<TET_COLS;c++) if(tetBoard[r][c]) drawTetCell(ctx,c,r,tetBoard[r][c],cw,ch);
+  // Ghost
+  if (tetPiece) {
+    let gy=tetPiece.y;
+    while(!tetCollide(tetPiece,0,gy-tetPiece.y+1)) gy++;
+    ctx.globalAlpha=0.2;
+    for(let r=0;r<tetPiece.shape.length;r++) for(let c=0;c<tetPiece.shape[r].length;c++)
+      if(tetPiece.shape[r][c]) drawTetCell(ctx,tetPiece.x+c,gy+r,tetPiece.color,cw,ch);
+    ctx.globalAlpha=1;
+    // Active piece
+    for(let r=0;r<tetPiece.shape.length;r++) for(let c=0;c<tetPiece.shape[r].length;c++)
+      if(tetPiece.shape[r][c]) drawTetCell(ctx,tetPiece.x+c,tetPiece.y+r,tetPiece.color,cw,ch);
+  }
+}
+
+function drawTetCell(ctx,x,y,color,cw,ch) {
+  ctx.shadowColor=color; ctx.shadowBlur=6;
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.roundRect(x*cw+1,y*ch+1,cw-2,ch-2,3); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.25)';
+  ctx.beginPath(); ctx.roundRect(x*cw+2,y*ch+2,cw-4,4,2); ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+function tetDrawNext() {
+  const canvas = document.getElementById('tetNext');
+  if (!canvas || !tetNext) return;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle='#0a0c10'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const cw=20,ch=20;
+  const ox=Math.floor((5-tetNext.shape[0].length)/2);
+  const oy=Math.floor((5-tetNext.shape.length)/2);
+  for(let r=0;r<tetNext.shape.length;r++) for(let c=0;c<tetNext.shape[r].length;c++)
+    if(tetNext.shape[r][c]) drawTetCell(ctx,ox+c,oy+r,tetNext.color,cw,ch);
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('page-tetris').classList.contains('active')) return;
+  if (e.key==='ArrowLeft') { e.preventDefault(); tetMove(-1,0); }
+  if (e.key==='ArrowRight') { e.preventDefault(); tetMove(1,0); }
+  if (e.key==='ArrowDown') { e.preventDefault(); tetMove(0,1); }
+  if (e.key==='ArrowUp'||e.key==='w'||e.key==='W') { e.preventDefault(); tetMove(0,-1); }
+  if (e.key===' ') { e.preventDefault(); tetDrop(); }
+  if (e.key==='p'||e.key==='P') { tetPaused=!tetPaused; }
+});
+
+// ===== REACTION GAME =====
+let reactState = 'idle'; // idle, waiting, ready, result
+let reactTimer = null;
+let reactStart = 0;
+let reactTimes = [];
+
+function reactionClick() {
+  if (reactState === 'idle') {
+    reactState = 'waiting';
+    document.getElementById('reactionBox').style.background = 'var(--card)';
+    document.getElementById('reactionBox').style.borderColor = 'var(--a3)';
+    document.getElementById('reactionEmoji').textContent = '⏳';
+    document.getElementById('reactionTitle').textContent = 'ЖДЁМ...';
+    document.getElementById('reactionSub').textContent = 'Не жми! Жди зелёного...';
+    const delay = 1500 + Math.random() * 3500;
+    reactTimer = setTimeout(() => {
+      reactState = 'ready';
+      document.getElementById('reactionBox').style.background = 'rgba(0,230,118,.15)';
+      document.getElementById('reactionBox').style.borderColor = 'var(--green)';
+      document.getElementById('reactionEmoji').textContent = '🟢';
+      document.getElementById('reactionTitle').textContent = 'ЖМИ!';
+      document.getElementById('reactionSub').textContent = '';
+      reactStart = performance.now();
+    }, delay);
+  } else if (reactState === 'waiting') {
+    clearTimeout(reactTimer);
+    reactState = 'idle';
+    document.getElementById('reactionBox').style.background = 'rgba(255,64,96,.1)';
+    document.getElementById('reactionBox').style.borderColor = 'var(--a1)';
+    document.getElementById('reactionEmoji').textContent = '❌';
+    document.getElementById('reactionTitle').textContent = 'СЛИШКОМ РАНО!';
+    document.getElementById('reactionSub').textContent = 'Нажми снова чтобы попробовать';
+    setTimeout(() => {
+      document.getElementById('reactionBox').style.background = 'var(--card)';
+      document.getElementById('reactionBox').style.borderColor = 'var(--border)';
+      document.getElementById('reactionEmoji').textContent = '⚡';
+      document.getElementById('reactionTitle').textContent = 'ТЕСТ РЕАКЦИИ';
+      document.getElementById('reactionSub').textContent = 'Нажми чтобы начать!';
+    }, 1200);
+  } else if (reactState === 'ready') {
+    const ms = Math.round(performance.now() - reactStart);
+    reactTimes.push(ms);
+    reactState = 'idle';
+    document.getElementById('reactionBox').style.background = 'var(--card)';
+    document.getElementById('reactionBox').style.borderColor = 'var(--border)';
+    document.getElementById('reactionEmoji').textContent = ms < 200 ? '🚀' : ms < 300 ? '⚡' : ms < 400 ? '👍' : '🐢';
+    document.getElementById('reactionTitle').textContent = ms + ' мс';
+    document.getElementById('reactionSub').textContent = ms < 200 ? 'Невероятно!' : ms < 300 ? 'Отличная реакция!' : ms < 400 ? 'Хорошо!' : 'Можно лучше!';
+    // Show results
+    updateReactionStats();
+    document.getElementById('reactionResults').style.display = 'block';
+    const list = document.getElementById('reactionResultsList');
+    list.innerHTML = reactTimes.slice().reverse().slice(0,5).map((t,i) => {
+      const n = reactTimes.length - i;
+      const clr = t<200?'var(--green)':t<300?'var(--a2)':t<400?'var(--a3)':'var(--a1)';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span style="color:var(--muted);font-size:.8rem">Попытка ${n}</span>
+        <span style="font-family:'Orbitron',monospace;font-size:.9rem;color:${clr}">${t} мс</span>
+      </div>`;
+    }).join('');
+    setTimeout(() => {
+      document.getElementById('reactionEmoji').textContent = '⚡';
+      document.getElementById('reactionTitle').textContent = 'ЕЩЁ РАЗ?';
+      document.getElementById('reactionSub').textContent = 'Нажми чтобы попробовать снова';
+    }, 1500);
+  }
+}
+
+function updateReactionStats() {
+  if (!reactTimes.length) return;
+  const best = Math.min(...reactTimes);
+  const avg = Math.round(reactTimes.reduce((a,b)=>a+b,0)/reactTimes.length);
+  document.getElementById('reactBest').textContent = best + 'мс';
+  document.getElementById('reactAvg').textContent = avg + 'мс';
+  document.getElementById('reactAttempts').textContent = reactTimes.length;
+}
+
+function reactionReset() {
+  reactTimes = [];
+  document.getElementById('reactionResults').style.display = 'none';
+  document.getElementById('reactBest').textContent = '—';
+  document.getElementById('reactAvg').textContent = '—';
+  document.getElementById('reactAttempts').textContent = '0';
+}
+</script>
+
+<style>
+/* Chat styles */
+.chat-msg { padding: 10px 14px; border-radius: 12px; font-size: .88rem; line-height: 1.4; max-width: 85%; word-break: break-word; }
+.chat-msg.system { background: rgba(255,255,255,.04); color: var(--muted); font-size: .8rem; text-align: center; max-width: 100%; border-radius: 8px; }
+.chat-msg.mine { background: linear-gradient(135deg,rgba(255,64,96,.2),rgba(177,74,255,.2)); border: 1px solid rgba(255,64,96,.2); align-self: flex-end; }
+.chat-msg.other { background: var(--card2); border: 1px solid var(--border); align-self: flex-start; }
+.chat-msg.admin-msg { background: linear-gradient(135deg,rgba(255,230,0,.15),rgba(255,140,0,.1)); border: 1px solid rgba(255,230,0,.3); }
+.chat-msg .msg-author { font-size: .72rem; font-weight: 800; margin-bottom: 3px; }
+.chat-msg .msg-author.is-admin { color: var(--a3); }
+.chat-msg .msg-time { font-size: .68rem; color: var(--muted); margin-top: 3px; }
+.emoji-react-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; font-size: 1.1rem; cursor: pointer; transition: all .15s; }
+.emoji-react-btn:hover { transform: scale(1.15); border-color: rgba(255,255,255,.2); }
+/* Trade styles */
+.trade-card { background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+.trade-card:last-child { margin-bottom: 0; }
+/* XP bar in profile */
+.xp-notification { position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg,var(--a3),var(--a1)); color: #000; padding: 12px 20px; border-radius: 14px; font-weight: 900; font-size: .9rem; z-index: 9999; animation: fadeUp .3s ease; box-shadow: 0 8px 24px rgba(255,230,0,.4); }
+/* Admin badge in sidebar */
+.admin-badge { display: inline-block; background: linear-gradient(90deg,var(--a3),var(--a1)); color: #000; font-size: .6rem; font-weight: 900; padding: 2px 7px; border-radius: 100px; margin-left: auto; letter-spacing: .5px; }
+/* Level badge */
+.level-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,var(--a4),var(--a1)); color: #fff; font-size: .72rem; font-weight: 900; padding: 3px 10px; border-radius: 100px; }
+</style>
+
+<script>
+// =============================================
+// GLOBAL PLAYER STATE (XP, Level, etc.)
+// =============================================
+let playerState = {
+  username: localStorage.getItem('gz_username') || 'Гость',
+  xp: parseInt(localStorage.getItem('gz_xp') || '0'),
+  level: parseInt(localStorage.getItem('gz_level') || '1'),
+  isAdmin: localStorage.getItem('gz_username') === 'v3nc',
+  xpMultiplier: 1,
+  bannedUsers: JSON.parse(localStorage.getItem('gz_banned') || '[]'),
+};
+
+const XP_PER_LEVEL = 500; // XP needed per level
+
+function getXPForLevel(lvl) { return lvl * XP_PER_LEVEL; }
+function getXPProgress() {
+  const xpThisLevel = playerState.xp - getXPForLevel(playerState.level - 1);
+  const xpNeeded = XP_PER_LEVEL;
+  return Math.min(100, Math.round((xpThisLevel / xpNeeded) * 100));
+}
+
+function addXP(amount, reason) {
+  const earned = Math.round(amount * playerState.xpMultiplier);
+  playerState.xp += earned;
+  localStorage.setItem('gz_xp', playerState.xp);
+
+  // Level up check
+  const newLevel = Math.floor(playerState.xp / XP_PER_LEVEL) + 1;
+  if (newLevel > playerState.level) {
+    playerState.level = newLevel;
+    localStorage.setItem('gz_level', playerState.level);
+    showXPNotif('🎉 УРОВЕНЬ ' + newLevel + '! +' + earned + ' XP');
+    if (typeof toast === 'function') toast('🎉 Новый уровень! Ты теперь ' + newLevel + ' уровня!');
+  } else {
+    showXPNotif('+' + earned + ' XP' + (reason ? ' · ' + reason : ''));
+  }
+  updateAllXPBars();
+  localStorage.setItem('gz_xp', playerState.xp);
+}
+
+function showXPNotif(msg) {
+  const el = document.createElement('div');
+  el.className = 'xp-notification';
+  el.textContent = '⭐ ' + msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; setTimeout(() => el.remove(), 400); }, 2000);
+}
+
+function updateAllXPBars() {
+  const pct = getXPProgress();
+  const xpNeeded = getXPForLevel(playerState.level) - playerState.xp + getXPForLevel(playerState.level - 1);
+  // Update profile page
+  document.querySelectorAll('.xpfill').forEach(el => el.style.width = pct + '%');
+  document.querySelectorAll('.xpmf').forEach(el => el.style.width = pct + '%');
+  document.querySelectorAll('.lv-num').forEach(el => el.textContent = playerState.level);
+  document.querySelectorAll('.xptxt').forEach(el => el.textContent = playerState.xp + ' / ' + (getXPForLevel(playerState.level)) + ' XP до уровня ' + (playerState.level + 1));
+  document.querySelectorAll('.su-lv').forEach(el => el.innerHTML = 'Уровень <span id="suLv">' + playerState.level + '</span> · ' + playerState.xp + ' XP');
+  // Update stat displays
+  const statEl = document.getElementById('profileLevelStat');
+  if (statEl) statEl.textContent = playerState.level;
+}
+
+// Override setName to also update playerState
+const _origSetName = typeof setName === 'function' ? setName : null;
+function setName(n) {
+  playerState.username = n;
+  localStorage.setItem('gz_username', n);
+  playerState.isAdmin = (n.toLowerCase() === 'v3nc');
+  if (_origSetName) _origSetName(n);
+  document.getElementById('suName').textContent = n;
+  document.getElementById('heroName').textContent = n;
+  document.getElementById('profName').textContent = n;
+  document.getElementById('nickInput').value = n;
+  document.getElementById('lbMyName').textContent = n;
+  updateAdminVisibility();
+  updateAllXPBars();
+}
+
+function updateAdminVisibility() {
+  const adminBtn = document.getElementById('adminNavBtn');
+  if (playerState.isAdmin) {
+    if (!adminBtn) {
+      // Add admin nav button
+      const nav = document.querySelector('.sidebar-nav');
+      const adminDiv = document.createElement('div');
+      adminDiv.innerHTML = `
+        <div class="nav-label" style="margin-top:8px;color:var(--a3)">Администратор</div>
+        <button class="nav-item" id="adminNavBtn" onclick="go('admin',this)">
+          <span class="ni">👑</span><span>Админ панель</span><span class="admin-badge">ADMIN</span>
+        </button>`;
+      nav.appendChild(adminDiv);
+    }
+    if (typeof toast === 'function') toast('👑 Добро пожаловать, администратор v3nc!');
+  } else if (adminBtn) {
+    adminBtn.parentElement.remove();
+  }
+}
+
+// Init on load
+(function initPlayer() {
+  playerState.username = localStorage.getItem('gz_username') || 'Гость';
+  playerState.xp = parseInt(localStorage.getItem('gz_xp') || '0');
+  playerState.level = parseInt(localStorage.getItem('gz_level') || '1');
+  playerState.isAdmin = (playerState.username.toLowerCase() === 'v3nc');
+  setTimeout(() => {
+    updateAllXPBars();
+    updateAdminVisibility();
+    loadChatMessages();
+    renderOnlineUsers();
+    updateTradeInventory();
+    setName(playerState.username);
+  }, 100);
+})();
+
+// =============================================
+// XP HOOKS — award XP for game actions
+// =============================================
+// Hook into snake game over
+const _origSnakeGameOver = typeof snakeGameOver === 'function' ? snakeGameOver : null;
+window.addEventListener('load', () => {
+  // Award XP periodically while playing snake
+});
+
+// We'll intercept score changes via a proxy approach
+// Award XP when cases opened - hook into existing openCase
+const _origSellWonItem = window.sellWonItem;
+if (typeof sellWonItem !== 'undefined') {
+  window.sellWonItem = function() {
+    addXP(15, 'Продан предмет');
+    if (_origSellWonItem) _origSellWonItem();
+  };
+}
+
+// =============================================
+// CHAT SYSTEM
+// =============================================
+let chatMessages = JSON.parse(localStorage.getItem('gz_chat') || '[]');
+const FAKE_USERS = ['ProGamer_X', 'NightFox', 'DragonSlayer', 'WolfPack', 'MoonWalker'];
+const FAKE_MSGS = [
+  'Только что открыл легендарку! 🌟',
+  'Кто хочет трейд? 🤝',
+  'Тетрис просто огонь 🔥',
+  'Сколько у тебя уровень?',
+  'Змейка топ игра 🐍',
+  'Как получить exotic предмет?',
+  'Всем привет! 👋',
+  'Только установил рекорд в реакции ⚡',
+];
+
+function loadChatMessages() {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  container.innerHTML = '<div class="chat-msg system">🎮 Добро пожаловать в чат GameZone!</div><div class="chat-msg system">📜 Правила: уважай других, не спамь, не оскорбляй</div>';
+  chatMessages.slice(-30).forEach(msg => appendChatMsg(msg, false));
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendChatMsg(msg, save = true) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  const div = document.createElement('div');
+  const isMe = msg.author === playerState.username;
+  const isAdmin = msg.author === 'v3nc' || msg.isAdmin;
+  div.className = 'chat-msg ' + (isAdmin ? 'admin-msg' : isMe ? 'mine' : 'other');
+  div.innerHTML = `<div class="msg-author ${isAdmin ? 'is-admin' : ''}">${isAdmin ? '👑 ' : ''}${msg.author}${isAdmin ? ' [ADMIN]' : ''} <span class="level-badge">Lv.${msg.level||1}</span></div>${msg.text}<div class="msg-time">${msg.time}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  if (save) {
+    chatMessages.push(msg);
+    if (chatMessages.length > 100) chatMessages = chatMessages.slice(-100);
+    localStorage.setItem('gz_chat', JSON.stringify(chatMessages));
+    document.getElementById('adminMsgs') && (document.getElementById('adminMsgs').textContent = chatMessages.length);
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (playerState.bannedUsers.includes(playerState.username)) {
+    toast('🚫 Ты забанен в чате!'); return;
+  }
+  const msg = {
+    author: playerState.username,
+    text: text,
+    time: new Date().toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit'}),
+    level: playerState.level,
+    isAdmin: playerState.isAdmin
+  };
+  appendChatMsg(msg);
+  input.value = '';
+  addXP(2, 'Сообщение в чат');
+  // Fake reply sometimes
+  if (Math.random() < 0.4) {
+    setTimeout(() => {
+      const fakeUser = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
+      const fakeText = FAKE_MSGS[Math.floor(Math.random()*FAKE_MSGS.length)];
+      appendChatMsg({ author: fakeUser, text: fakeText, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}), level: Math.floor(Math.random()*20)+1 });
+    }, 1200 + Math.random()*2000);
+  }
+}
+
+function sendEmoji(em) {
+  document.getElementById('chatInput').value = em;
+  sendChat();
+}
+
+function renderOnlineUsers() {
+  const list = document.getElementById('onlineList');
+  if (!list) return;
+  const users = [
+    { name: playerState.username, level: playerState.level, isMe: true, isAdmin: playerState.isAdmin },
+    { name: 'ProGamer_X', level: 42 }, { name: 'NightFox', level: 38 },
+    { name: 'DragonSlayer', level: 35 }, { name: 'WolfPack', level: 31 },
+  ];
+  list.innerHTML = users.map(u => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0"></div>
+      <span style="flex:1;font-weight:700;font-size:.85rem;color:${u.isAdmin?'var(--a3)':'var(--text)'}">${u.isAdmin?'👑 ':''} ${u.name}${u.isMe?' (ты)':''}</span>
+      <span class="level-badge">Lv.${u.level}</span>
+    </div>`).join('');
+}
+
+// =============================================
+// TRADES SYSTEM
+// =============================================
+let tradesData = JSON.parse(localStorage.getItem('gz_trades') || '[]');
+
+function updateTradeInventory() {
+  const sel = document.getElementById('tradeItemSelect');
+  if (!sel) return;
+  // Get inventory from case clicker state
+  let inv = [];
+  try { const s = localStorage.getItem('caseClicker'); if (s) inv = JSON.parse(s).inventory || []; } catch(e) {}
+  sel.innerHTML = '<option value="">— выбери предмет —</option>' + inv.map((item, i) =>
+    `<option value="${i}">${item.emoji} ${item.name} (${item.rarity.toUpperCase()})</option>`
+  ).join('');
+}
+
+function createTrade() {
+  const target = document.getElementById('tradeTarget').value.trim();
+  const itemIdx = document.getElementById('tradeItemSelect').value;
+  const want = document.getElementById('tradeWant').value.trim();
+  const comment = document.getElementById('tradeComment').value.trim();
+  if (!target) { toast('Укажи никнейм получателя! ❌'); return; }
+  if (itemIdx === '') { toast('Выбери предмет для трейда! ❌'); return; }
+  let inv = [];
+  try { const s = localStorage.getItem('caseClicker'); if(s) inv = JSON.parse(s).inventory || []; } catch(e) {}
+  const item = inv[parseInt(itemIdx)];
+  if (!item) { toast('Предмет не найден! ❌'); return; }
+  const trade = {
+    id: Date.now(),
+    from: playerState.username,
+    to: target,
+    item: item,
+    want: want || 'Любой предмет',
+    comment: comment,
+    status: 'pending',
+    time: new Date().toLocaleString('ru'),
+  };
+  tradesData.push(trade);
+  localStorage.setItem('gz_trades', JSON.stringify(tradesData));
+  document.getElementById('tradeTarget').value = '';
+  document.getElementById('tradeWant').value = '';
+  document.getElementById('tradeComment').value = '';
+  renderTrades();
+  addXP(5, 'Создан трейд');
+  toast('✅ Трейд отправлен игроку ' + target + '!');
+}
+
+function renderTrades() {
+  const myOut = tradesData.filter(t => t.from === playerState.username);
+  const myIn = tradesData.filter(t => t.to === playerState.username);
+  document.getElementById('tradeOutCount').textContent = myOut.length;
+  document.getElementById('tradeInCount').textContent = myIn.length;
+  const renderList = (items, container, isIncoming) => {
+    if (!items.length) { container.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">Нет трейдов</div>`; return; }
+    container.innerHTML = items.map(t => `
+      <div class="trade-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-weight:800;font-size:.85rem">${isIncoming ? 'От: '+t.from : 'Кому: '+t.to}</span>
+          <span style="font-size:.7rem;padding:2px 8px;border-radius:100px;background:${t.status==='pending'?'rgba(255,230,0,.15)':'rgba(0,230,118,.15)'};color:${t.status==='pending'?'var(--a3)':'var(--green)'}">${t.status==='pending'?'⏳ Ожидает':'✅ Принят'}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted)">📦 Предмет: <span style="color:var(--text);font-weight:700">${t.item.emoji} ${t.item.name}</span></div>
+        <div style="font-size:.82rem;color:var(--muted)">🙏 Хочет: <span style="color:var(--text)">${t.want}</span></div>
+        ${t.comment ? `<div style="font-size:.78rem;color:var(--muted);margin-top:4px">💬 ${t.comment}</div>` : ''}
+        ${isIncoming && t.status==='pending' ? `
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="acceptTrade(${t.id})" style="flex:1;padding:8px;background:linear-gradient(90deg,var(--green),#009688);border:none;border-radius:10px;color:#000;font-weight:900;font-size:.8rem;cursor:pointer">✅ Принять</button>
+            <button onclick="declineTrade(${t.id})" style="flex:1;padding:8px;background:rgba(255,64,96,.15);border:1px solid var(--a1);border-radius:10px;color:var(--a1);font-weight:900;font-size:.8rem;cursor:pointer">❌ Отклонить</button>
+          </div>` : ''}
+        ${!isIncoming ? `<button onclick="cancelTrade(${t.id})" style="margin-top:8px;width:100%;padding:7px;background:rgba(255,64,96,.1);border:1px solid rgba(255,64,96,.3);border-radius:10px;color:var(--a1);font-weight:700;font-size:.78rem;cursor:pointer">Отменить</button>` : ''}
+      </div>`).join('');
+  };
+  renderList(myOut, document.getElementById('tradeOutList'), false);
+  renderList(myIn, document.getElementById('tradeInList'), true);
+  document.getElementById('adminTrades') && (document.getElementById('adminTrades').textContent = tradesData.filter(t=>t.status==='pending').length);
+}
+
+function acceptTrade(id) {
+  const t = tradesData.find(tr => tr.id === id);
+  if (!t) return;
+  t.status = 'accepted';
+  localStorage.setItem('gz_trades', JSON.stringify(tradesData));
+  renderTrades();
+  addXP(20, 'Трейд принят!');
+  toast('✅ Трейд принят! +20 XP');
+}
+function declineTrade(id) {
+  tradesData = tradesData.filter(t => t.id !== id);
+  localStorage.setItem('gz_trades', JSON.stringify(tradesData));
+  renderTrades(); toast('❌ Трейд отклонён');
+}
+function cancelTrade(id) {
+  tradesData = tradesData.filter(t => t.id !== id);
+  localStorage.setItem('gz_trades', JSON.stringify(tradesData));
+  renderTrades(); toast('🗑️ Трейд отменён');
+}
+
+// =============================================
+// ADMIN FUNCTIONS
+// =============================================
+function adminBanUser() {
+  if (!playerState.isAdmin) return;
+  const u = document.getElementById('adminTargetUser').value.trim();
+  if (!u) return;
+  const banned = JSON.parse(localStorage.getItem('gz_banned')||'[]');
+  if (!banned.includes(u)) banned.push(u);
+  localStorage.setItem('gz_banned', JSON.stringify(banned));
+  playerState.bannedUsers = banned;
+  appendChatMsg({ author: 'СИСТЕМА', text: `🚫 Игрок ${u} был забанен администратором.`, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}), isAdmin: true, level: 99 });
+  toast('🚫 Игрок ' + u + ' забанен!');
+}
+function adminGiveXP() {
+  if (!playerState.isAdmin) return;
+  const u = document.getElementById('adminTargetUser').value.trim();
+  if (!u) return;
+  if (u === playerState.username) { addXP(500, 'Выдано админом'); toast('⭐ +500 XP выдано!'); }
+  else toast('⭐ XP отправлен игроку ' + u + ' (симуляция)');
+}
+function adminGiveAdmin() {
+  if (!playerState.isAdmin) return;
+  toast('👑 Права администратора выданы (симуляция)');
+}
+function setXPMult(n) {
+  playerState.xpMultiplier = n;
+  document.getElementById('xpMultDisplay').textContent = n + 'x';
+  document.querySelectorAll('[onclick^="setXPMult"]').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  toast('⚡ Множитель XP: ' + n + 'x');
+}
+function adminSendAnnounce() {
+  if (!playerState.isAdmin) return;
+  const text = document.getElementById('adminAnnounce').value.trim();
+  if (!text) return;
+  go('chat', null);
+  appendChatMsg({ author: 'v3nc', text: '📢 ' + text, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}), isAdmin: true, level: 99 });
+  document.getElementById('adminAnnounce').value = '';
+  toast('📢 Объявление отправлено!');
+}
+function adminClearChat() {
+  if (!playerState.isAdmin) return;
+  if (!confirm('Очистить весь чат?')) return;
+  chatMessages = [];
+  localStorage.removeItem('gz_chat');
+  loadChatMessages();
+  toast('🗑️ Чат очищен');
+}
+function adminClearTrades() {
+  if (!playerState.isAdmin) return;
+  if (!confirm('Удалить все трейды?')) return;
+  tradesData = [];
+  localStorage.removeItem('gz_trades');
+  renderTrades();
+  toast('🗑️ Трейды очищены');
+}
+
+// Update trades inventory when visiting trades page
+const _origGo = go;
+window.go = function(id, btn) {
+  _origGo(id, btn);
+  if (id === 'trades') { updateTradeInventory(); renderTrades(); }
+  if (id === 'chat') { loadChatMessages(); renderOnlineUsers(); }
+  if (id === 'admin') {
+    if (!playerState.isAdmin) { go('home', null); toast('🚫 Доступ запрещён!'); return; }
+    document.getElementById('adminOnline').textContent = '5';
+    document.getElementById('adminMsgs').textContent = chatMessages.length;
+    document.getElementById('adminTrades').textContent = tradesData.filter(t=>t.status==='pending').length;
+  }
+};
 </script>
 </body>
 </html>
