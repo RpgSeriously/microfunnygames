@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GameZone — Мини-игры</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+/* ===== SITE STYLES ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--bg2:#0f0f1a;--card:#13131f;--card2:#1a1a2e;
+  --border:#ffffff0f;--a1:#ff4060;--a2:#00d4ff;--a3:#ffe600;--a4:#b14aff;
+  --text:#eeeef5;--muted:#5a5a7a;--green:#00e676;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(255,64,96,.13) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 85% 90%,rgba(0,212,255,.10) 0%,transparent 60%)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:44px 44px}
+.sidebar{width:240px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-logo{padding:28px 24px 20px;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;border-bottom:1px solid var(--border)}
+.sidebar-logo em{font-style:normal;color:var(--a3);-webkit-text-fill-color:var(--a3)}
+.sidebar-nav{flex:1;padding:16px 0}
+.nav-label{padding:12px 24px 6px;font-size:.65rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 24px;color:var(--muted);font-weight:700;font-size:.9rem;cursor:pointer;border:none;background:none;width:100%;text-align:left;position:relative;transition:color .2s}
+.nav-item:hover{color:var(--text)}
+.nav-item.active{color:var(--text)}
+.nav-item.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--a1),var(--a4))}
+.nav-item.active .ni{color:var(--a1)}
+.ni{font-size:1.1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--a1);color:#fff;font-size:.65rem;font-weight:900;padding:2px 7px;border-radius:100px}
+.nav-badge.g{background:var(--green);color:#000}
+.ndot{width:8px;height:8px;background:var(--a1);border-radius:50%;margin-left:auto;flex-shrink:0}
+.su{margin:16px;border-radius:14px;background:var(--card);border:1px solid var(--border);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s}
+.su:hover{border-color:rgba(255,255,255,.15)}
+.su-ava{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;position:relative}
+.dot{position:absolute;bottom:0;right:0;width:11px;height:11px;background:var(--green);border-radius:50%;border:2px solid var(--bg2)}
+.su-info{flex:1;min-width:0}
+.su-name{font-weight:800;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-lv{font-size:.72rem;color:var(--muted)}
+.xpm{margin-top:5px;height:3px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.xpmf{height:100%;width:65%;background:linear-gradient(90deg,var(--a1),var(--a4));border-radius:10px}
+.main{margin-left:240px;flex:1;position:relative;z-index:1}
+.page{display:none}
+.page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page-padded{padding:32px}
+.ph{margin-bottom:32px}
+.pt{font-family:"Bebas Neue",sans-serif;font-size:2.8rem;letter-spacing:2px;line-height:1}
+.pt span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ps{color:var(--muted);margin-top:6px;font-size:.95rem}
+.qs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;display:flex;align-items:center;gap:16px}
+.qcard-val{font-family:"Bebas Neue",sans-serif;font-size:1.8rem;line-height:1}
+.qcard-lbl{font-size:.75rem;color:var(--muted)}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:18px}
+.sc-title{font-weight:900;font-size:1rem;margin-bottom:16px}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.gc{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative}
+.gc:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.12);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.gthumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden}
+.gthumb::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--card) 100%)}
+.ginfo{padding:14px}
+.gname{font-weight:900;font-size:.95rem;margin-bottom:4px}
+.gdesc{font-size:.78rem;color:var(--muted);line-height:1.4}
+.gmeta{display:flex;align-items:center;gap:8px;margin-top:10px}
+.gtag{font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,.06);color:var(--muted)}
+.gtag.hot{background:rgba(255,64,96,.15);color:var(--a1)}
+.gtag.new{background:rgba(0,212,255,.12);color:var(--a2)}
+.gstars{font-size:.75rem;color:var(--a3);margin-left:auto}
+.gpbtn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:pointer;opacity:0;transition:opacity .2s;z-index:2}
+.gc:hover .gpbtn{opacity:1}
+.tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.tb{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:none;color:var(--muted);font-family:"Nunito",sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s}
+.tb:hover{border-color:rgba(255,255,255,.15);color:var(--text)}
+.tb.active{background:linear-gradient(90deg,var(--a1),var(--a4));border-color:transparent;color:#fff}
+.lb{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.lb-h{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.lb-row{display:flex;align-items:center;gap:14px;padding:13px 24px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s}
+.lb-row:hover{background:rgba(255,255,255,.02)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;width:30px;text-align:center;color:var(--muted);flex-shrink:0}
+.lb-rank.g{color:var(--a3)}.lb-rank.s{color:#aaa}.lb-rank.b{color:#cd7f32}
+.lb-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.lb-name{flex:1;font-weight:800;font-size:.88rem}
+.lb-sub{font-size:.72rem;color:var(--muted)}
+.lb-score{font-family:"Bebas Neue",sans-serif;font-size:1.25rem;color:var(--a2)}
+.prof-hero{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:30px;margin-bottom:20px;display:flex;align-items:center;gap:26px;position:relative;overflow:hidden}
+.prof-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,64,96,.08) 0%,transparent 60%);pointer-events:none}
+.pba{width:88px;height:88px;border-radius:50%;font-size:2.6rem;display:flex;align-items:center;justify-content:center;border:3px solid rgba(255,255,255,.1);flex-shrink:0;position:relative;cursor:pointer}
+.pba-edit{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:.72rem;font-weight:700}
+.pba:hover .pba-edit{opacity:1}
+.prof-info{flex:1}
+.prof-name{font-family:"Bebas Neue",sans-serif;font-size:1.9rem;letter-spacing:1px}
+.prof-tag{color:var(--muted);font-size:.82rem;margin-bottom:10px}
+.lv-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.lv-lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.lv-num{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;background:linear-gradient(90deg,var(--a1),var(--a4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.xpbar{height:8px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.xpfill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--a1),var(--a4));width:65%}
+.xptxt{font-size:.7rem;color:var(--muted);margin-top:4px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pst{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.pst-v{font-family:"Bebas Neue",sans-serif;font-size:1.7rem;color:var(--a2)}
+.pst-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.badge{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700}
+.avagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));gap:10px;margin-top:14px}
+.avaopt{aspect-ratio:1;border-radius:14px;background:var(--card2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:all .2s}
+.avaopt:hover{border-color:rgba(255,255,255,.2);transform:scale(1.06)}
+.avaopt.sel{border-color:var(--a1);box-shadow:0 0 20px rgba(255,64,96,.35)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px}
+.scard-t{font-weight:900;margin-bottom:14px}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.trow:last-child{border-bottom:none;padding-bottom:0}
+.trow-lbl{font-size:.86rem;color:var(--muted)}
+.tog{width:44px;height:24px;border-radius:100px;background:rgba(255,255,255,.1);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--a1)}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on::after{transform:translateX(20px)}
+.overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:36px;width:100%;max-width:420px;position:relative;transform:translateY(20px);transition:transform .3s}
+.overlay.open .modal{transform:translateY(0)}
+.mcls{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.06);border:none;color:var(--muted);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;transition:color .2s}
+.mcls:hover{color:var(--text)}
+.mt{font-family:"Bebas Neue",sans-serif;font-size:2rem;letter-spacing:2px;margin-bottom:4px}
+.ms{font-size:.84rem;color:var(--muted);margin-bottom:24px}
+.mtabs{display:flex;margin-bottom:22px;background:var(--card);border-radius:12px;padding:4px}
+.mtab{flex:1;padding:9px;border:none;background:none;color:var(--muted);font-family:"Nunito",sans-serif;font-weight:700;font-size:.84rem;cursor:pointer;border-radius:10px;transition:all .2s}
+.mtab.active{background:var(--bg2);color:var(--text)}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:.75rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.fi{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 15px;color:var(--text);font-family:"Nunito",sans-serif;font-size:.93rem;outline:none;transition:border-color .2s}
+.fi:focus{border-color:rgba(255,64,96,.5)}
+.fi::placeholder{color:var(--muted)}
+.btn{width:100%;padding:13px;border-radius:14px;border:none;font-family:"Nunito",sans-serif;font-weight:900;font-size:.95rem;cursor:pointer;transition:all .2s}
+.btn-p{background:linear-gradient(90deg,var(--a1),var(--a4));color:#fff}
+.btn-p:hover{opacity:.9;transform:translateY(-1px)}
+.btn-s{background:var(--card);border:1px solid var(--border);color:var(--text);margin-top:9px}
+.ham{display:none;position:fixed;top:14px;left:14px;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;cursor:pointer;font-size:1.2rem;color:var(--text)}
+.sel-ui{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-family:"Nunito",sans-serif;font-size:.8rem;outline:none}
+/* Game page banner */
+.game-topbar{display:flex;align-items:center;gap:12px;padding:16px 24px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.game-back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;font-family:"Nunito",sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s}
+.game-back-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+.game-title-bar{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;letter-spacing:2px;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .page-padded{padding:20px}
+  .ham{display:block}
+  .prof-hero{flex-direction:column;text-align:center}
+  .gg{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+</style>
+
+<!-- GAME STYLES -->
+<style>
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --border: #1e2330;
+    --accent: #f0b429;
+    --accent2: #e05c1a;
+    --blue: #4f9eff;
+    --purple: #b44fff;
+    --red: #ff4444;
+    --green: #44ff88;
+    --text: #c8cdd8;
+    --text-dim: #5a6070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(79,158,255,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(240,180,41,0.04) 0%, transparent 60%);
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 30px 20px 10px;
+    position: relative;
+  }
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 900;
+    letter-spacing: 8px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    position: relative;
+  }
+  .logo::after {
+    content: 'CLICKER';
+    display: block;
+    font-size: clamp(12px, 2vw, 18px);
+    letter-spacing: 16px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: -6px;
+  }
+
+  /* CURRENCY BAR */
+  .currency-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    padding: 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .currency-item {
+    text-align: center;
+  }
+  .currency-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .currency-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    transition: all 0.2s;
+  }
+  .currency-value.bump {
+    transform: scale(1.15);
+    color: var(--green);
+  }
+
+  /* LAYOUT */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px 1fr;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+  @media (max-width: 900px) {
+    .game-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* CASE AREA */
+  .case-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .case-wrapper {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .case-box {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    transition: transform 0.08s;
+  }
+  .case-wrapper:active .case-box {
+    transform: scale(0.93);
+  }
+
+  .case-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px rgba(240,180,41,0.3));
+    transition: filter 0.3s;
+  }
+  .case-wrapper:hover .case-svg {
+    filter: drop-shadow(0 0 35px rgba(240,180,41,0.6));
+  }
+
+  .click-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(240,180,41,0.4);
+    animation: ripple 0.5s ease-out forwards;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+  }
+  @keyframes ripple {
+    from { width: 0; height: 0; opacity: 1; }
+    to { width: 200px; height: 200px; opacity: 0; }
+  }
+
+  .click-number {
+    position: absolute;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 20px;
+    pointer-events: none;
+    animation: floatUp 0.8s ease-out forwards;
+    text-shadow: 0 0 10px rgba(240,180,41,0.8);
+    white-space: nowrap;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
+  }
+
+  .open-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 3px;
+    padding: 14px 40px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .open-btn:hover { transform: scaleX(1.05); filter: brightness(1.1); }
+  .open-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .case-cost {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .case-cost span { color: var(--accent); font-weight: 700; }
+
+  /* CPS Display */
+  .cps-display {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+  .cps-display span { color: var(--blue); font-weight: 700; }
+
+  /* SECTION TITLES */
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+  }
+
+  /* UPGRADES */
+  .upgrades-panel, .shop-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .upgrade-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .upgrade-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .upgrade-item:hover::before { opacity: 1; }
+  .upgrade-item:hover { border-color: var(--accent); background: #161920; }
+  .upgrade-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .upgrade-item.locked:hover { border-color: var(--border); background: var(--surface); }
+  .upgrade-item.locked:hover::before { opacity: 0; }
+  .upgrade-item.maxed { border-color: var(--green); opacity: 0.7; cursor: default; }
+
+  .upg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .upg-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #e8eaf0;
+  }
+  .upg-cost {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .upg-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .upg-level {
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .upg-pip {
+    width: 12px;
+    height: 3px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+  .upg-pip.filled { background: var(--accent); }
+
+  /* OPENING ANIMATION OVERLAY */
+  .open-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,7,12,0.95);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .open-overlay.active { display: flex; }
+
+  .roulette-container {
+    width: min(700px, 95vw);
+    overflow: hidden;
+    position: relative;
+  }
+  .roulette-rail {
+    display: flex;
+    gap: 6px;
+    transition: transform 4s cubic-bezier(0.12, 0, 0.18, 1);
+    will-change: transform;
+  }
+  .roulette-item {
+    flex: 0 0 120px;
+    height: 120px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    position: relative;
+    overflow: hidden;
+  }
+  .roulette-item .item-icon { font-size: 36px; }
+  .roulette-item.rarity-common { border-color: #555; background: #111418; }
+  .roulette-item.rarity-rare { border-color: #4f9eff; background: #0d1520; }
+  .roulette-item.rarity-epic { border-color: #b44fff; background: #140d20; }
+  .roulette-item.rarity-legendary { border-color: #f0b429; background: #1c1408; }
+  .roulette-item.rarity-exotic { border-color: #ff4444; background: #1c0808; }
+  .roulette-item.rarity-common .ritem-rarity { color: #888; }
+  .roulette-item.rarity-rare .ritem-rarity { color: var(--blue); }
+  .roulette-item.rarity-epic .ritem-rarity { color: var(--purple); }
+  .roulette-item.rarity-legendary .ritem-rarity { color: var(--accent); }
+  .roulette-item.rarity-exotic .ritem-rarity { color: var(--red); }
+
+  .roulette-pointer {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: var(--red);
+    z-index: 10;
+    box-shadow: 0 0 12px var(--red);
+  }
+  .roulette-pointer::before, .roulette-pointer::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+  }
+  .roulette-pointer::before { top: 0; border-top-color: var(--red); }
+  .roulette-pointer::after { bottom: 0; border-bottom-color: var(--red); }
+
+  .won-result {
+    margin-top: 30px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s 4.2s;
+  }
+  .won-result.show { opacity: 1; }
+  .won-item-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+  .won-item-name.rarity-common { color: #aaa; }
+  .won-item-name.rarity-rare { color: var(--blue); text-shadow: 0 0 20px rgba(79,158,255,0.5); }
+  .won-item-name.rarity-epic { color: var(--purple); text-shadow: 0 0 20px rgba(180,79,255,0.5); }
+  .won-item-name.rarity-legendary { color: var(--accent); text-shadow: 0 0 30px rgba(240,180,41,0.7); }
+  .won-item-name.rarity-exotic { color: var(--red); text-shadow: 0 0 30px rgba(255,68,68,0.7); }
+
+  .won-value {
+    font-size: 18px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .won-value span { color: var(--accent); font-weight: 700; }
+
+  .result-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .result-btn {
+    padding: 12px 30px;
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: all 0.2s;
+  }
+  .result-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .result-btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    border-color: transparent;
+  }
+  .result-btn.primary:hover { filter: brightness(1.1); }
+
+  /* INVENTORY */
+  .inventory-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .inventory-panel::-webkit-scrollbar { width: 4px; }
+  .inventory-panel::-webkit-scrollbar-track { background: var(--bg); }
+  .inventory-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .inv-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  }
+  .inv-icon { font-size: 20px; }
+  .inv-info { flex: 1; }
+  .inv-name { font-size: 13px; font-weight: 700; }
+  .inv-name.rarity-common { color: #aaa; }
+  .inv-name.rarity-rare { color: var(--blue); }
+  .inv-name.rarity-epic { color: var(--purple); }
+  .inv-name.rarity-legendary { color: var(--accent); }
+  .inv-name.rarity-exotic { color: var(--red); }
+  .inv-val { font-size: 11px; color: var(--text-dim); }
+  .sell-btn {
+    padding: 4px 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sell-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  }
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-top: 2px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    width: 100%;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    transition: width 0.3s;
+  }
+
+  /* NOTIFICATIONS */
+  #notifs {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .notif {
+    background: var(--surface);
+    border-left: 3px solid var(--green);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    animation: slideIn 0.3s ease-out, fadeOut 0.4s ease-in 2s forwards;
+    max-width: 260px;
+  }
+  .notif.bad { border-left-color: var(--red); color: var(--red); }
+  @keyframes slideIn {
+    from { transform: translateX(80px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateX(80px); }
+  }
+
+  /* Glow effect on open */
+  @keyframes caseGlow {
+    0% { filter: drop-shadow(0 0 20px rgba(240,180,41,0.3)); }
+    50% { filter: drop-shadow(0 0 50px rgba(240,180,41,0.9)); }
+    100% { filter: drop-shadow(0 0 20px rgba(240,180,41,0.3)); }
+  }
+
+  .pulse { animation: caseGlow 0.6s ease-in-out; }
+
+  .empty-inv { color: var(--text-dim); font-size: 13px; letter-spacing: 1px; padding: 16px; text-align: center; }
+
+/* Override game header since we have sidebar */
+header { display: none !important; }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+<button class="ham" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">GAME<em>ZONE</em></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Главная</div>
+    <button class="nav-item active" onclick="go('home',this)"><span class="ni">🏠</span>Главная</button>
+    <button class="nav-item" onclick="go('games',this)"><span class="ni">🎮</span>Все игры<span class="nav-badge g">5</span></button>
+    <button class="nav-item" onclick="go('leaderboard',this)"><span class="ni">🏆</span>Таблица лидеров</button>
+    <div class="nav-label" style="margin-top:8px">Игры</div>
+    <button class="nav-item" id="caseNavBtn" onclick="go('casegame',this)"><span class="ni">🎰</span>Симулятор кейсов<span class="nav-badge" style="background:var(--a4)">ИГРАТЬ</span></button>
+    <div class="nav-label" style="margin-top:8px">Профиль</div>
+    <button class="nav-item" onclick="go('profile',this)"><span class="ni">👤</span>Мой профиль</button>
+    <button class="nav-item" onclick="go('avatar',this)"><span class="ni">🎨</span>Выбор аватара</button>
+    <button class="nav-item" onclick="go('settings',this)"><span class="ni">⚙️</span>Настройки<span class="ndot"></span></button>
+    <div class="nav-label" style="margin-top:8px">Аккаунт</div>
+    <button class="nav-item" onclick="openAuth()"><span class="ni">🔑</span>Войти / Регистрация</button>
+  </nav>
+  <div class="su" onclick="go('profile',null)">
+    <div class="su-ava" id="suAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)">😎<div class="dot"></div></div>
+    <div class="su-info">
+      <div class="su-name" id="suName">Гость</div>
+      <div class="su-lv">Уровень <span id="suLv">7</span> · 6 500 XP</div>
+      <div class="xpm"><div class="xpmf"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- HOME -->
+  <div class="page active page-padded" id="page-home">
+    <div class="ph"><div class="pt">Привет, <span id="heroName">Игрок</span>!</div><div class="ps">Выбери игру и начни зарабатывать очки 🎯</div></div>
+    <div class="qs">
+      <div class="qcard"><div style="font-size:2rem">🏆</div><div><div class="qcard-val" style="color:var(--a3)">1 240</div><div class="qcard-lbl">Очки</div></div></div>
+      <div class="qcard"><div style="font-size:2rem">🎮</div><div><div class="qcard-val" style="color:var(--a2)">38</div><div class="qcard-lbl">Игр сыграно</div></div></div>
+      <div class="qcard"><div style="font-size:2rem">⚡</div><div><div class="qcard-val" style="color:var(--a1)">7</div><div class="qcard-lbl">Уровень</div></div></div>
+      <div class="qcard"><div style="font-size:2rem">🔥</div><div><div class="qcard-val" style="color:var(--a4)">5</div><div class="qcard-lbl">Дней подряд</div></div></div>
+    </div>
+    <div class="sc">
+      <div class="sc-title">🔥 Популярные игры</div>
+      <div class="gg">
+        <div class="gc" onclick="go('casegame',null)">
+          <div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div>
+          <div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы, собирай предметы!</div><div class="gmeta"><span class="gtag hot">🔥 Хит</span><span class="gstars">★ 4.9</span></div></div>
+        </div>
+        <div class="gc" onclick="toast('Скоро! 🛠️')">
+          <div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div>
+          <div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Собирай еду, не врезайся!</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.8</span></div></div>
+        </div>
+        <div class="gc" onclick="toast('Скоро! 🛠️')">
+          <div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div>
+          <div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки идеально</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.9</span></div></div>
+        </div>
+        <div class="gc" onclick="toast('Скоро! 🛠️')">
+          <div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div>
+          <div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Тест скорости рефлексов</div><div class="gmeta"><span class="gtag new">Новое</span><span class="gstars">★ 4.6</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <div class="page page-padded" id="page-games">
+    <div class="ph"><div class="pt">Все <span>Игры</span></div><div class="ps">Выбери что хочешь сыграть</div></div>
+    <div class="tabs">
+      <button class="tb active" onclick="setTab(this)">Все</button>
+      <button class="tb" onclick="setTab(this)">Аркады</button>
+      <button class="tb" onclick="setTab(this)">Симуляторы</button>
+      <button class="tb" onclick="setTab(this)">Реакция</button>
+    </div>
+    <div class="gg">
+      <div class="gc" onclick="go('casegame',null)">
+        <div class="gthumb" style="background:linear-gradient(135deg,#0a1a0a,#1a3a1a)">🎰<button class="gpbtn">▶</button></div>
+        <div class="ginfo"><div class="gname">Симулятор кейсов</div><div class="gdesc">Открывай кейсы, прокачивай аккаунт</div><div class="gmeta"><span class="gtag hot">Хит</span><span class="gstars">★ 4.9</span></div></div>
+      </div>
+      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a1a2e,#2d1b4e)">🐍<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Змейка</div><div class="gdesc">Классика всех времён</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.8</span></div></div></div>
+      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#0d1b2a,#1b3a4b)">🧱<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Тетрис</div><div class="gdesc">Складывай блоки</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.9</span></div></div></div>
+      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a0a00,#3d1a00)">⚡<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Реакция</div><div class="gdesc">Тест рефлексов</div><div class="gmeta"><span class="gtag new">Новое</span><span class="gstars">★ 4.6</span></div></div></div>
+      <div class="gc" onclick="toast('Скоро! 🛠️')"><div class="gthumb" style="background:linear-gradient(135deg,#1a001a,#3a0060)">🧩<button class="gpbtn">▶</button></div><div class="ginfo"><div class="gname">Память</div><div class="gdesc">Найди пары карточек</div><div class="gmeta"><span class="gtag">Скоро</span><span class="gstars">★ 4.5</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="page page-padded" id="page-leaderboard">
+    <div class="ph"><div class="pt">Таблица <span>Лидеров</span></div><div class="ps">Лучшие игроки недели</div></div>
+    <div class="lb">
+      <div class="lb-h"><div style="font-weight:900">🏆 Топ игроки</div><select class="sel-ui"><option>Эта неделя</option><option>Этот месяц</option></select></div>
+      <div class="lb-row"><div class="lb-rank g">1</div><div class="lb-ava" style="background:linear-gradient(135deg,#ff4060,#b14aff)">👑</div><div><div class="lb-name">ProGamer_X</div><div class="lb-sub">Уровень 42</div></div><div class="lb-score">48 200</div></div>
+      <div class="lb-row"><div class="lb-rank s">2</div><div class="lb-ava" style="background:linear-gradient(135deg,#00d4ff,#0080ff)">🦊</div><div><div class="lb-name">NightFox</div><div class="lb-sub">Уровень 38</div></div><div class="lb-score">41 500</div></div>
+      <div class="lb-row"><div class="lb-rank b">3</div><div class="lb-ava" style="background:linear-gradient(135deg,#ffe600,#ff8000)">🐉</div><div><div class="lb-name">DragonSlayer</div><div class="lb-sub">Уровень 35</div></div><div class="lb-score">38 900</div></div>
+      <div class="lb-row"><div class="lb-rank">4</div><div class="lb-ava" style="background:linear-gradient(135deg,#00e676,#009688)">🐺</div><div><div class="lb-name">WolfPack</div><div class="lb-sub">Уровень 31</div></div><div class="lb-score">32 100</div></div>
+      <div class="lb-row" style="background:rgba(255,64,96,.06);border-left:3px solid var(--a1)"><div class="lb-rank" style="color:var(--a1)">23</div><div class="lb-ava" id="lbMyAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)">😎</div><div><div class="lb-name" id="lbMyName">Ты</div><div class="lb-sub">Уровень 7</div></div><div class="lb-score" style="color:var(--a1)">6 500</div></div>
+    </div>
+  </div>
+
+  <!-- CASE GAME -->
+  <div class="page" id="page-casegame">
+    <div class="game-topbar">
+      <button class="game-back-btn" onclick="go('home',null)">← Назад</button>
+      <div class="game-title-bar">🎰 СИМУЛЯТОР КЕЙСОВ</div>
+    </div>
+    <header>
+  <div class="logo">CASE</div>
+  <button onclick="openAdminLogin()" style="position:absolute;top:20px;right:20px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:8px 14px;cursor:pointer;transition:all 0.2s;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">⚙ ADMIN</button>
+</header>
+
+<div class="currency-bar">
+  <div class="currency-item">
+    <div class="currency-label">Монеты</div>
+    <div class="currency-value" id="coins-display">0</div>
+  </div>
+  <div class="currency-item">
+    <div class="currency-label">Всего открыто</div>
+    <div class="currency-value" id="total-display">0</div>
+  </div>
+  <div class="currency-item">
+    <div class="currency-label">Продано предметов</div>
+    <div class="currency-value" id="sold-display">0</div>
+  </div>
+</div>
+
+<div class="game-layout">
+
+  <!-- LEFT: UPGRADES -->
+  <div>
+    <div class="section-title">⚡ Улучшения клика</div>
+    <div class="upgrades-panel" id="click-upgrades"></div>
+
+    <div class="section-title" style="margin-top:20px">⚙️ Авто-открытие</div>
+    <div class="upgrades-panel" id="auto-upgrades"></div>
+  </div>
+
+  <!-- CENTER: CASE -->
+  <div class="case-area">
+    <div class="section-title" style="text-align:center">🎰 Текущий кейс</div>
+
+    <!-- Case selector -->
+    <div id="case-tabs" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:4px"></div>
+
+    <div class="case-wrapper" id="case-wrapper">
+      <div class="case-box" id="case-box">
+        <svg class="case-svg" id="case-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="caseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#2a2000;stop-opacity:1"/>
+              <stop offset="100%" style="stop-color:#1a1400;stop-opacity:1"/>
+            </linearGradient>
+            <linearGradient id="lockGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#f0b429"/>
+              <stop offset="100%" style="stop-color:#e05c1a"/>
+            </linearGradient>
+          </defs>
+          <!-- Case body -->
+          <rect x="20" y="70" width="160" height="110" rx="8" fill="url(#caseGrad)" stroke="#f0b429" stroke-width="2"/>
+          <!-- Handle top -->
+          <rect x="60" y="55" width="80" height="25" rx="6" fill="none" stroke="#f0b429" stroke-width="2"/>
+          <!-- Latch -->
+          <rect x="85" y="118" width="30" height="22" rx="4" fill="url(#lockGrad)"/>
+          <rect x="93" y="125" width="14" height="10" rx="2" fill="#1a1400"/>
+          <!-- Hinges -->
+          <circle cx="35" cy="73" r="5" fill="#f0b429" opacity="0.7"/>
+          <circle cx="165" cy="73" r="5" fill="#f0b429" opacity="0.7"/>
+          <!-- Lines decoration -->
+          <line x1="20" y1="115" x2="180" y2="115" stroke="#f0b429" stroke-width="1" opacity="0.3"/>
+          <!-- Stars -->
+          <text x="45" y="105" font-size="16" opacity="0.5">✦</text>
+          <text x="140" y="105" font-size="16" opacity="0.5">✦</text>
+          <text x="92" y="100" font-size="20" opacity="0.8">⚡</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="case-cost">Стоимость: <span id="case-cost-val">100</span> монет</div>
+    <button class="open-btn" id="open-btn" onclick="openCase()">ОТКРЫТЬ</button>
+    <div class="cps-display">Авто: <span id="cps-display">0</span> монет/сек</div>
+
+    <div style="width:100%;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:4px">
+        <span>Прогресс до следующего кейса</span>
+        <span id="next-case-label">—</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Stats -->
+    <div style="width:100%;margin-top:16px">
+      <div class="section-title">📊 Статистика</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Кликов</div>
+          <div class="stat-value" id="stat-clicks">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Монет всего</div>
+          <div class="stat-value" id="stat-earned">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Монет/клик</div>
+          <div class="stat-value" id="stat-cpc">1</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Редких предметов</div>
+          <div class="stat-value" id="stat-rare">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: INVENTORY -->
+  <div>
+    <div class="section-title">🎒 Инвентарь (<span id="inv-count">0</span>)</div>
+    <div class="inventory-panel" id="inventory"></div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="sellAll()" style="padding:8px 16px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;flex:1" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">ПРОДАТЬ ВСЁ</button>
+      <button onclick="sellCommon()" style="padding:8px 16px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;flex:1" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">ПРОДАТЬ COMMON</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPENING OVERLAY -->
+<div class="open-overlay" id="open-overlay">
+  <div style="font-family:'Orbitron',monospace;font-size:13px;letter-spacing:4px;color:var(--text-dim);margin-bottom:20px">ОТКРЫВАЕМ КЕЙС...</div>
+  <div class="roulette-container">
+    <div class="roulette-pointer"></div>
+    <div class="roulette-rail" id="roulette-rail"></div>
+  </div>
+  <div class="won-result" id="won-result">
+    <div class="won-item-name" id="won-name"></div>
+    <div class="won-value">Стоимость: <span id="won-val"></span> монет</div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="sellWonItem()">ПРОДАТЬ</button>
+      <button class="result-btn" onclick="keepItem()">В ИНВЕНТАРЬ</button>
+      <button class="result-btn" onclick="openAgain()">ОТКРЫТЬ ЕЩЁ</button>
+    </div>
+  </div>
+</div>
+
+<div id="notifs"></div>
+
+<!-- ADMIN LOGIN OVERLAY -->
+<div class="open-overlay" id="admin-login-overlay" style="z-index:300">
+  <div style="background:var(--surface);border:1px solid var(--border);padding:40px;max-width:380px;width:90%;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));position:relative">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--purple),var(--blue))"></div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:4px;color:var(--red);margin-bottom:8px">⚠ RESTRICTED ACCESS</div>
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--text);margin-bottom:24px;letter-spacing:2px">ADMIN PANEL</div>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px;letter-spacing:1px">Введите код доступа:</div>
+    <input id="admin-code-input" type="password" placeholder="● ● ● ● ● ●"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:18px;letter-spacing:8px;padding:14px 16px;outline:none;margin-bottom:8px;text-align:center;transition:border-color 0.2s"
+      onkeydown="if(event.key==='Enter')checkAdminCode()"
+      oninput="this.style.borderColor='var(--border)';document.getElementById('admin-login-err').style.opacity=0">
+    <div id="admin-login-err" style="color:var(--red);font-size:12px;letter-spacing:2px;text-align:center;margin-bottom:16px;opacity:0;transition:opacity 0.3s">❌ НЕВЕРНЫЙ КОД</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="checkAdminCode()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--red),#aa0000);color:#fff;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;border:none;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);transition:filter 0.2s" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">ВОЙТИ</button>
+      <button onclick="closeAdminLogin()" style="padding:12px 20px;background:var(--bg);color:var(--text-dim);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--text-dim)'" onmouseout="this.style.borderColor='var(--border)'">ОТМЕНА</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL OVERLAY -->
+<div class="open-overlay" id="admin-panel-overlay" style="z-index:300;align-items:flex-start;overflow-y:auto;padding:20px 0">
+  <div style="width:min(900px,95vw);margin:auto">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;background:var(--surface);border:1px solid var(--red);padding:16px 24px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);position:relative">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--purple),var(--blue))"></div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:4px;color:var(--red)">⚠ ADMIN MODE ACTIVE</div>
+        <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text)">ПАНЕЛЬ АДМИНИСТРАТОРА</div>
+      </div>
+      <button onclick="closeAdminPanel()" style="padding:10px 20px;background:var(--red);color:#fff;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;border:none;cursor:pointer;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)">✕ ЗАКРЫТЬ</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- COINS -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:14px">💰 МОНЕТЫ</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px">Текущий баланс: <span id="admin-coins-show" style="color:var(--accent);font-weight:700"></span></div>
+          <div style="display:flex;gap:8px">
+            <input id="admin-coins-input" type="number" placeholder="Сумма монет" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:13px;padding:10px 12px;outline:none">
+            <button onclick="adminGiveCoins()" class="admin-btn">ВЫДАТЬ</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onclick="adminGiveCoinsAmount(1000)" class="admin-quick-btn">+1K</button>
+            <button onclick="adminGiveCoinsAmount(10000)" class="admin-quick-btn">+10K</button>
+            <button onclick="adminGiveCoinsAmount(100000)" class="admin-quick-btn">+100K</button>
+            <button onclick="adminGiveCoinsAmount(1000000)" class="admin-quick-btn">+1M</button>
+            <button onclick="adminSetCoins(0)" class="admin-quick-btn" style="border-color:var(--red);color:var(--red)">СБРОСИТЬ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS EDIT -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--blue);margin-bottom:14px">⚡ ПАРАМЕТРЫ</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--text-dim);flex:1;letter-spacing:1px">Монет/клик:</span>
+            <input id="admin-cpc" type="number" style="width:100px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:13px;padding:8px;outline:none;text-align:center">
+            <button onclick="adminSetCPC()" class="admin-btn" style="padding:8px 14px">SET</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--text-dim);flex:1;letter-spacing:1px">Монет/сек:</span>
+            <input id="admin-cps" type="number" style="width:100px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:13px;padding:8px;outline:none;text-align:center">
+            <button onclick="adminSetCPS()" class="admin-btn" style="padding:8px 14px">SET</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--text-dim);flex:1;letter-spacing:1px">Кейсов открыто:</span>
+            <input id="admin-cases" type="number" style="width:100px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:13px;padding:8px;outline:none;text-align:center">
+            <button onclick="adminSetCases()" class="admin-btn" style="padding:8px 14px">SET</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GIVE ITEM -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--purple);margin-bottom:14px">🎁 ВЫДАТЬ ПРЕДМЕТ</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:8px">
+            <input id="admin-item-emoji" type="text" placeholder="Emoji" maxlength="2" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:20px;padding:8px;outline:none;text-align:center">
+            <input id="admin-item-name" type="text" placeholder="Название предмета" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;padding:8px 12px;outline:none">
+          </div>
+          <div style="display:flex;gap:8px">
+            <select id="admin-item-rarity" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:11px;padding:8px;outline:none;cursor:pointer">
+              <option value="common">COMMON</option>
+              <option value="rare">RARE</option>
+              <option value="epic">EPIC</option>
+              <option value="legendary">LEGENDARY</option>
+              <option value="exotic">EXOTIC</option>
+            </select>
+            <input id="admin-item-value" type="number" placeholder="Ценность" style="width:110px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Orbitron',monospace;font-size:12px;padding:8px;outline:none">
+          </div>
+          <button onclick="adminGiveItem()" class="admin-btn" style="width:100%;padding:12px">🎁 ДОБАВИТЬ В ИНВЕНТАРЬ</button>
+          <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:4px">БЫСТРАЯ ВЫДАЧА:</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onclick="adminGivePreset('💎','Алмаз','exotic',999999)" class="admin-quick-btn" style="border-color:var(--red);color:var(--red)">💎 Алмаз</button>
+            <button onclick="adminGivePreset('🌟','Звезда Бога','exotic',500000)" class="admin-quick-btn" style="border-color:var(--accent);color:var(--accent)">🌟 Звезда</button>
+            <button onclick="adminGivePreset('👑','Корона','legendary',80000)" class="admin-quick-btn" style="border-color:var(--purple);color:var(--purple)">👑 Корона</button>
+            <button onclick="adminGivePreset('⚔️','Эпик Меч','epic',9000)" class="admin-quick-btn">⚔️ Меч</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPGRADES UNLOCK -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--green);margin-bottom:14px">🔓 УЛУЧШЕНИЯ</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onclick="adminMaxAllUpgrades()" class="admin-btn" style="width:100%;padding:12px;background:linear-gradient(135deg,rgba(68,255,136,0.2),rgba(68,255,136,0.05));border-color:var(--green);color:var(--green)">⬆ МАКСИРОВАТЬ ВСЕ УЛУЧШЕНИЯ</button>
+          <button onclick="adminResetUpgrades()" class="admin-btn" style="width:100%;padding:12px;border-color:var(--red);color:var(--red)">↩ СБРОСИТЬ ВСЕ УЛУЧШЕНИЯ</button>
+        </div>
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:16px;margin-bottom:10px">СОСТОЯНИЕ УЛУЧШЕНИЙ:</div>
+        <div id="admin-upgrades-status" style="display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto"></div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div style="background:var(--surface);border:1px solid var(--red);padding:20px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);grid-column:1/-1">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--red);margin-bottom:14px">☢ DANGER ZONE</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="adminClearInventory()" class="admin-btn" style="border-color:var(--red);color:var(--red)">🗑 ОЧИСТИТЬ ИНВЕНТАРЬ</button>
+          <button onclick="adminFillInventory()" class="admin-btn" style="border-color:var(--purple);color:var(--purple)">📦 ЗАПОЛНИТЬ ИНВЕНТАРЬ (20 random)</button>
+          <button onclick="adminResetAll()" class="admin-btn" style="background:rgba(255,68,68,0.15);border-color:var(--red);color:var(--red)">☢ ПОЛНЫЙ СБРОС ИГРЫ</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.admin-btn {
+  padding: 8px 18px;
+  background: var(--bg);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+.admin-btn:hover { filter: brightness(1.3); background: rgba(79,158,255,0.1); }
+
+.admin-quick-btn {
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-quick-btn:hover { border-color: var(--blue); color: var(--blue); }
+</style>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page page-padded" id="page-profile">
+    <div class="ph"><div class="pt">Мой <span>Профиль</span></div></div>
+    <div class="prof-hero">
+      <div class="pba" id="bigAva" style="background:linear-gradient(135deg,#ff4060,#b14aff)" onclick="go('avatar',null)">
+        <span id="bigAvaEmoji">😎</span><div class="pba-edit">✏️</div>
+      </div>
+      <div class="prof-info">
+        <div class="prof-name" id="profName">Гость</div>
+        <div class="prof-tag">#GameZone · 2026</div>
+        <div><div class="lv-hdr"><span class="lv-lbl">Уровень</span><span class="lv-num">7</span></div><div class="xpbar"><div class="xpfill"></div></div><div class="xptxt">6 500 / 10 000 XP</div></div>
+        <div class="pstats">
+          <div class="pst"><div class="pst-v">38</div><div class="pst-l">Игр</div></div>
+          <div class="pst"><div class="pst-v" style="color:var(--a3)">1 240</div><div class="pst-l">Очков</div></div>
+          <div class="pst"><div class="pst-v" style="color:var(--a1)">5</div><div class="pst-l">Побед</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sc"><div class="sc-title">🏅 Достижения</div><div class="badges"><div class="badge">🔥 5 дней подряд</div><div class="badge">🎰 Открыл кейс</div><div class="badge">⚡ Реакция</div><div class="badge" style="opacity:.4">🏆 Топ-10 (заблок.)</div></div></div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="page page-padded" id="page-avatar">
+    <div class="ph"><div class="pt">Выбор <span>Аватара</span></div><div class="ps">Нажми на аватар, потом сохрани</div></div>
+    <div class="sc"><div class="sc-title">😀 Аватары</div><div class="avagrid" id="avaGrid"></div></div>
+    <button class="btn btn-p" style="max-width:220px;margin-top:4px" onclick="saveAvatar()">💾 Сохранить аватар</button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page page-padded" id="page-settings">
+    <div class="ph"><div class="pt">Настрой<span>ки</span></div></div>
+    <div class="sgrid">
+      <div class="scard"><div class="scard-t">🔔 Уведомления</div><div class="trow"><span class="trow-lbl">Новые достижения</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div><div class="trow"><span class="trow-lbl">Новые игры</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div></div>
+      <div class="scard"><div class="scard-t">🎮 Игры</div><div class="trow"><span class="trow-lbl">Звуки</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div><div class="trow"><span class="trow-lbl">Анимации</span><div class="tog on" onclick="this.classList.toggle('on')"></div></div></div>
+      <div class="scard"><div class="scard-t">👤 Аккаунт</div><div class="fg"><label class="fl">Никнейм</label><input class="fi" id="nickInput" value="Гость"/></div><button class="btn btn-p" onclick="saveName()">Сохранить</button></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay" onclick="closeModalOut(event)">
+  <div class="modal">
+    <button class="mcls" onclick="closeAuth()">✕</button>
+    <div class="mt">Привет! 👋</div><div class="ms">Войди или зарегистрируйся</div>
+    <div class="mtabs"><button class="mtab active" onclick="switchMtab(this,'loginF')">Войти</button><button class="mtab" onclick="switchMtab(this,'regF')">Регистрация</button></div>
+    <div id="loginF"><div class="fg"><label class="fl">Никнейм</label><input class="fi" placeholder="Введи никнейм"/></div><div class="fg"><label class="fl">Пароль</label><input class="fi" type="password" placeholder="••••••••"/></div><button class="btn btn-p" onclick="fakeLogin()">Войти 🚀</button><button class="btn btn-s" onclick="closeAuth()">Без аккаунта</button></div>
+    <div id="regF" style="display:none"><div class="fg"><label class="fl">Никнейм</label><input class="fi" id="regName" placeholder="НовыйГеймер"/></div><div class="fg"><label class="fl">Email</label><input class="fi" type="email" placeholder="email@mail.ru"/></div><div class="fg"><label class="fl">Пароль</label><input class="fi" type="password" placeholder="Мин. 6 символов"/></div><button class="btn btn-p" onclick="fakeReg()">Создать аккаунт 🎮</button></div>
+  </div>
+</div>
+
+<div id="notifs"></div>
+
+<script>
+// ===== SITE NAVIGATION =====
+function go(id, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-" + id).classList.add("active");
+  if (btn) {
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  if (window.innerWidth < 768) document.getElementById("sidebar").classList.remove("open");
+}
+function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
+function setTab(el) { document.querySelectorAll(".tb").forEach(t => t.classList.remove("active")); el.classList.add("active"); }
+function openAuth() { document.getElementById("authOverlay").classList.add("open"); }
+function closeAuth() { document.getElementById("authOverlay").classList.remove("open"); }
+function closeModalOut(e) { if (e.target === document.getElementById("authOverlay")) closeAuth(); }
+function switchMtab(btn, f) {
+  document.querySelectorAll(".mtab").forEach(t => t.classList.remove("active")); btn.classList.add("active");
+  document.getElementById("loginF").style.display = "none";
+  document.getElementById("regF").style.display = "none";
+  document.getElementById(f).style.display = "block";
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeAuth(); });
+
+function setName(n) {
+  document.getElementById("suName").textContent = n;
+  document.getElementById("heroName").textContent = n;
+  document.getElementById("profName").textContent = n;
+  document.getElementById("nickInput").value = n;
+  document.getElementById("lbMyName").textContent = n;
+}
+function saveName() { const n = document.getElementById("nickInput").value.trim(); if (n) { setName(n); toast("Никнейм сохранён ✅"); } }
+function fakeLogin() { closeAuth(); toast("Добро пожаловать! 🎮"); }
+function fakeReg() { const n = document.getElementById("regName").value.trim() || "Новый игрок"; setName(n); closeAuth(); toast("Аккаунт создан! Привет, " + n + " 🎉"); }
+
+const AVAS = ["😎","🦊","🐉","👑","🐺","🌙","🦁","🐼","🐸","🦄","🤖","👾","🧙","💀","🎃","🥷","🐯","🦅","🎯","🔥","💎","⚡","🌟","🎭"];
+const COLS = ["linear-gradient(135deg,#ff4060,#b14aff)","linear-gradient(135deg,#00d4ff,#0080ff)","linear-gradient(135deg,#ffe600,#ff8000)","linear-gradient(135deg,#00e676,#009688)","linear-gradient(135deg,#b14aff,#4a00e0)","linear-gradient(135deg,#ff4060,#ff8000)"];
+let selAva = { e: "😎", c: COLS[0] };
+(function() {
+  const g = document.getElementById("avaGrid");
+  AVAS.forEach((e, i) => {
+    const d = document.createElement("div"); d.className = "avaopt" + (e === "😎" ? " sel" : "");
+    d.style.background = COLS[i % COLS.length]; d.textContent = e;
+    d.onclick = () => { document.querySelectorAll(".avaopt").forEach(a => a.classList.remove("sel")); d.classList.add("sel"); selAva = { e, c: COLS[i % COLS.length] }; };
+    g.appendChild(d);
+  });
+})();
+function saveAvatar() {
+  document.getElementById("suAva").childNodes[0].textContent = selAva.e;
+  document.getElementById("suAva").style.background = selAva.c;
+  document.getElementById("bigAvaEmoji").textContent = selAva.e;
+  document.getElementById("bigAva").style.background = selAva.c;
+  document.getElementById("lbMyAva").textContent = selAva.e;
+  document.getElementById("lbMyAva").style.background = selAva.c;
+  toast("Аватар сохранён " + selAva.e);
+}
+function toast(msg) {
+  const t = document.createElement("div"); t.textContent = msg;
+  Object.assign(t.style, { position:"fixed", bottom:"24px", right:"24px", background:"#1a1a2e", border:"1px solid rgba(255,255,255,.12)", color:"#eeeef5", padding:"13px 20px", borderRadius:"14px", fontWeight:"700", fontSize:".88rem", zIndex:"9999", boxShadow:"0 10px 30px rgba(0,0,0,.5)", fontFamily:"'Nunito',sans-serif" });
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; t.style.transition = "opacity .3s"; setTimeout(() => t.remove(), 300); }, 2200);
+}
+</script>
+
+<!-- GAME SCRIPT -->
+<script>
+
+// ==================== DATA ====================
+
+const CASES = [
+  {
+    id: 'basic', name: 'Базовый', cost: 100, emoji: '📦',
+    items: [
+      { name: 'Ржавый нож', emoji: '🔪', rarity: 'common', value: 30 },
+      { name: 'Старые перчатки', emoji: '🧤', rarity: 'common', value: 45 },
+      { name: 'Дешёвый пистолет', emoji: '🔫', rarity: 'common', value: 60 },
+      { name: 'Синяя маска', emoji: '😷', rarity: 'rare', value: 200, chance: 0.25 },
+      { name: 'Лазерный прицел', emoji: '🎯', rarity: 'rare', value: 350, chance: 0.15 },
+      { name: 'Призрачный клинок', emoji: '⚔️', rarity: 'epic', value: 900, chance: 0.08 },
+      { name: 'Золотой пистолет', emoji: '✨', rarity: 'legendary', value: 3000, chance: 0.02 },
+    ]
+  },
+  {
+    id: 'weapon', name: 'Оружейный', cost: 500, emoji: '⚔️',
+    items: [
+      { name: 'Карманный нож', emoji: '🗡️', rarity: 'common', value: 100 },
+      { name: 'Обрез', emoji: '🔫', rarity: 'common', value: 180 },
+      { name: 'Боевой автомат', emoji: '🪖', rarity: 'rare', value: 800, chance: 0.25 },
+      { name: 'Снайперка Призрак', emoji: '🎯', rarity: 'epic', value: 2500, chance: 0.1 },
+      { name: 'Плазменный меч', emoji: '⚡', rarity: 'epic', value: 4000, chance: 0.06 },
+      { name: 'Клинок Хаоса', emoji: '🌀', rarity: 'legendary', value: 12000, chance: 0.02 },
+      { name: '★ Ядерное оружие ★', emoji: '☢️', rarity: 'exotic', value: 50000, chance: 0.005 },
+    ]
+  },
+  {
+    id: 'cyber', name: 'Кибер', cost: 2000, emoji: '🤖',
+    items: [
+      { name: 'Старый чип', emoji: '💾', rarity: 'common', value: 400 },
+      { name: 'Взломщик', emoji: '💻', rarity: 'common', value: 700 },
+      { name: 'Нейро-интерфейс', emoji: '🧠', rarity: 'rare', value: 3000, chance: 0.22 },
+      { name: 'Кибер-глаз', emoji: '👁️', rarity: 'epic', value: 9000, chance: 0.09 },
+      { name: 'Квантовый процессор', emoji: '⚛️', rarity: 'legendary', value: 30000, chance: 0.02 },
+      { name: '★ Бог-машина ★', emoji: '🌐', rarity: 'exotic', value: 120000, chance: 0.004 },
+    ]
+  },
+  {
+    id: 'elite', name: 'Элитный', cost: 10000, emoji: '👑',
+    items: [
+      { name: 'Бронзовый медальон', emoji: '🥉', rarity: 'common', value: 2000 },
+      { name: 'Серебряный кулон', emoji: '🥈', rarity: 'rare', value: 8000, chance: 0.3 },
+      { name: 'Золотой трон', emoji: '🏆', rarity: 'epic', value: 25000, chance: 0.12 },
+      { name: 'Корона Тени', emoji: '👑', rarity: 'legendary', value: 80000, chance: 0.03 },
+      { name: '★ СВЯТОЙ ГРААЛЬ ★', emoji: '🌟', rarity: 'exotic', value: 500000, chance: 0.003 },
+    ]
+  }
+];
+
+const CLICK_UPGRADES = [
+  { id: 'gloves', name: 'Перчатки клик', desc: '+2 монеты за клик', cost: 150, bonus: 2, levels: 5, type: 'click' },
+  { id: 'tool', name: 'Инструмент', desc: '+5 монет за клик', cost: 600, bonus: 5, levels: 5, type: 'click' },
+  { id: 'power', name: 'Усилитель', desc: '+15 монет за клик', cost: 2500, bonus: 15, levels: 5, type: 'click' },
+  { id: 'turbo', name: 'Турбо-клик', desc: '+50 монет за клик', cost: 10000, bonus: 50, levels: 5, type: 'click' },
+  { id: 'mega', name: 'Мега-удар', desc: '+200 монет за клик', cost: 50000, bonus: 200, levels: 5, type: 'click' },
+];
+
+const AUTO_UPGRADES = [
+  { id: 'bot1', name: 'Авто-бот I', desc: '+5 монет/сек', cost: 300, bonus: 5, levels: 10, type: 'auto' },
+  { id: 'bot2', name: 'Авто-бот II', desc: '+20 монет/сек', cost: 1200, bonus: 20, levels: 10, type: 'auto' },
+  { id: 'farm', name: 'Монетная ферма', desc: '+80 монет/сек', cost: 5000, bonus: 80, levels: 10, type: 'auto' },
+  { id: 'mine', name: 'Крипто-майнер', desc: '+300 монет/сек', cost: 20000, bonus: 300, levels: 10, type: 'auto' },
+  { id: 'ai', name: 'ИИ-трейдер', desc: '+1000 монет/сек', cost: 100000, bonus: 1000, levels: 10, type: 'auto' },
+];
+
+// ==================== STATE ====================
+
+let state = {
+  coins: 200,
+  totalEarned: 200,
+  clicks: 0,
+  casesOpened: 0,
+  itemsSold: 0,
+  coinsPerClick: 1,
+  coinsPerSec: 0,
+  currentCase: 0,
+  inventory: [],
+  upgrades: {},
+  lastWon: null,
+};
+
+// Load save
+try {
+  const saved = localStorage.getItem('caseClicker');
+  if (saved) state = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('caseClicker', JSON.stringify(state)); } catch(e) {}
+}
+
+// ==================== HELPERS ====================
+
+function fmt(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.floor(n).toString();
+}
+
+function notif(msg, bad = false) {
+  const el = document.createElement('div');
+  el.className = 'notif' + (bad ? ' bad' : '');
+  el.textContent = msg;
+  document.getElementById('notifs').appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function bumpValue(id) {
+  const el = document.getElementById(id);
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 200);
+}
+
+// ==================== RENDER ====================
+
+function renderUI() {
+  document.getElementById('coins-display').textContent = fmt(state.coins);
+  document.getElementById('total-display').textContent = fmt(state.casesOpened);
+  document.getElementById('sold-display').textContent = fmt(state.itemsSold);
+  document.getElementById('stat-clicks').textContent = fmt(state.clicks);
+  document.getElementById('stat-earned').textContent = fmt(state.totalEarned);
+  document.getElementById('stat-cpc').textContent = fmt(state.coinsPerClick);
+  document.getElementById('stat-rare').textContent = fmt(state.inventory.filter(i => i.rarity !== 'common').length + (state.itemsSold - state.inventory.length < 0 ? 0 : 0));
+
+  const curCase = CASES[state.currentCase];
+  document.getElementById('case-cost-val').textContent = fmt(curCase.cost);
+  document.getElementById('open-btn').disabled = state.coins < curCase.cost;
+  document.getElementById('cps-display').textContent = fmt(state.coinsPerSec);
+
+  // Progress to next case
+  if (state.currentCase < CASES.length - 1) {
+    const next = CASES[state.currentCase + 1];
+    const pct = Math.min(100, (state.coins / next.cost) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('next-case-label').textContent = next.emoji + ' ' + next.name + ' (' + fmt(next.cost) + ')';
+  } else {
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('next-case-label').textContent = '✅ Все разблокированы';
+  }
+
+  renderInventory();
+  renderUpgrades();
+  renderCaseTabs();
+}
+
+function renderInventory() {
+  const panel = document.getElementById('inventory');
+  document.getElementById('inv-count').textContent = state.inventory.length;
+  if (!state.inventory.length) {
+    panel.innerHTML = '<div class="empty-inv">Инвентарь пуст</div>';
+    return;
+  }
+  panel.innerHTML = state.inventory.slice().reverse().map((item, ridx) => {
+    const idx = state.inventory.length - 1 - ridx;
+    return `<div class="inv-item">
+      <span class="inv-icon">${item.emoji}</span>
+      <div class="inv-info">
+        <div class="inv-name rarity-${item.rarity}">${item.name}</div>
+        <div class="inv-val">${fmt(item.value)} монет • ${item.rarity.toUpperCase()}</div>
+      </div>
+      <button class="sell-btn" onclick="sellItem(${idx})">Продать</button>
+    </div>`;
+  }).join('');
+}
+
+function renderUpgrades() {
+  renderUpgradePanel('click-upgrades', CLICK_UPGRADES);
+  renderUpgradePanel('auto-upgrades', AUTO_UPGRADES);
+}
+
+function renderUpgradePanel(elId, upgrades) {
+  const panel = document.getElementById(elId);
+  panel.innerHTML = upgrades.map(upg => {
+    const level = state.upgrades[upg.id] || 0;
+    const isMax = level >= upg.levels;
+    const cost = Math.floor(upg.cost * Math.pow(1.8, level));
+    const locked = state.coins < cost && !isMax;
+    const pips = Array.from({length: upg.levels}, (_, i) =>
+      `<div class="upg-pip ${i < level ? 'filled' : ''}"></div>`
+    ).join('');
+    return `<div class="upgrade-item ${locked ? 'locked' : ''} ${isMax ? 'maxed' : ''}"
+      onclick="${!locked && !isMax ? `buyUpgrade('${upg.id}')` : ''}">
+      <div class="upg-header">
+        <span class="upg-name">${upg.name}</span>
+        <span class="upg-cost">${isMax ? 'MAX' : fmt(cost) + ' ₡'}</span>
+      </div>
+      <div class="upg-desc">${upg.desc} ${isMax ? `(${level}/${upg.levels})` : `• уровень ${level}/${upg.levels}`}</div>
+      <div class="upg-level">${pips}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCaseTabs() {
+  const tabs = document.getElementById('case-tabs');
+  tabs.innerHTML = CASES.map((c, i) => {
+    const unlocked = state.totalEarned >= c.cost || state.coins >= c.cost || state.casesOpened > 0 && i === 0;
+    const active = state.currentCase === i;
+    return `<button onclick="selectCase(${i})"
+      style="padding:6px 14px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};background:${active ? 'rgba(240,180,41,0.1)' : 'var(--surface)'};color:${active ? 'var(--accent)' : 'var(--text-dim)'};transition:all 0.2s;"
+      >${c.emoji} ${c.name}</button>`;
+  }).join('');
+}
+
+// ==================== ACTIONS ====================
+
+function selectCase(idx) {
+  state.currentCase = idx;
+  renderUI();
+}
+
+// Click to earn coins
+document.getElementById('case-wrapper').addEventListener('click', (e) => {
+  if (document.getElementById('open-overlay').classList.contains('active')) return;
+
+  const earned = state.coinsPerClick;
+  state.coins += earned;
+  state.totalEarned += earned;
+  state.clicks++;
+
+  // Ripple
+  const box = document.getElementById('case-box');
+  const rect = box.getBoundingClientRect();
+  const ripple = document.createElement('div');
+  ripple.className = 'click-ripple';
+  ripple.style.left = (e.clientX - rect.left) + 'px';
+  ripple.style.top = (e.clientY - rect.top) + 'px';
+  box.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 500);
+
+  // Float number
+  const num = document.createElement('div');
+  num.className = 'click-number';
+  num.textContent = '+' + fmt(earned);
+  num.style.left = (e.clientX - rect.left - 20) + 'px';
+  num.style.top = (e.clientY - rect.top - 20) + 'px';
+  box.appendChild(num);
+  setTimeout(() => num.remove(), 800);
+
+  bumpValue('coins-display');
+  renderUI();
+  save();
+});
+
+function buyUpgrade(id) {
+  const upg = [...CLICK_UPGRADES, ...AUTO_UPGRADES].find(u => u.id === id);
+  if (!upg) return;
+  const level = state.upgrades[id] || 0;
+  const cost = Math.floor(upg.cost * Math.pow(1.8, level));
+  if (state.coins < cost || level >= upg.levels) return;
+  state.coins -= cost;
+  state.upgrades[id] = level + 1;
+
+  if (upg.type === 'click') {
+    state.coinsPerClick += upg.bonus;
+  } else {
+    state.coinsPerSec += upg.bonus;
+  }
+
+  notif(`✅ ${upg.name} улучшен до уровня ${level + 1}!`);
+  renderUI();
+  save();
+}
+
+// ==================== OPEN CASE ====================
+
+function rollItem(caseData) {
+  const items = caseData.items;
+  // Custom chance system
+  const totalWeight = items.reduce((s, item) => s + (item.chance || 0.5), 0);
+  let r = Math.random() * totalWeight;
+  for (const item of items) {
+    r -= (item.chance || 0.5);
+    if (r <= 0) return item;
+  }
+  return items[items.length - 1];
+}
+
+let wonItem = null;
+
+function openCase() {
+  const curCase = CASES[state.currentCase];
+  if (state.coins < curCase.cost) {
+    notif('❌ Недостаточно монет!', true);
+    return;
+  }
+  state.coins -= curCase.cost;
+  state.casesOpened++;
+  wonItem = rollItem(curCase);
+
+  // Animate
+  const overlay = document.getElementById('open-overlay');
+  overlay.classList.add('active');
+  document.getElementById('won-result').classList.remove('show');
+
+  // Build roulette
+  const rail = document.getElementById('roulette-rail');
+  rail.style.transition = 'none';
+  rail.style.transform = 'translateX(0)';
+  rail.innerHTML = '';
+
+  const allItems = curCase.items;
+  const itemWidth = 126; // 120 + 6 gap
+  const totalItems = 60;
+  const winIndex = totalItems - 8; // lands near end
+
+  for (let i = 0; i < totalItems; i++) {
+    const item = i === winIndex ? wonItem : allItems[Math.floor(Math.random() * allItems.length)];
+    const div = document.createElement('div');
+    div.className = `roulette-item rarity-${item.rarity}`;
+    div.innerHTML = `<span class="item-icon">${item.emoji}</span><span style="font-size:10px;letter-spacing:1px;color:var(--text-dim)">${item.name.length > 12 ? item.name.slice(0,12)+'…' : item.name}</span><span class="ritem-rarity" style="font-size:9px;letter-spacing:1px">${item.rarity.toUpperCase()}</span>`;
+    rail.appendChild(div);
+  }
+
+  // Center roulette - pointer is at 50% of container
+  const containerWidth = rail.parentElement.offsetWidth;
+  const startOffset = 0;
+  const targetOffset = winIndex * itemWidth - containerWidth / 2 + 60;
+
+  setTimeout(() => {
+    rail.style.transition = 'transform 4s cubic-bezier(0.12, 0, 0.18, 1)';
+    rail.style.transform = `translateX(-${targetOffset}px)`;
+  }, 100);
+
+  // Show result
+  setTimeout(() => {
+    document.getElementById('won-name').textContent = wonItem.emoji + ' ' + wonItem.name;
+    document.getElementById('won-name').className = 'won-item-name rarity-' + wonItem.rarity;
+    document.getElementById('won-val').textContent = fmt(wonItem.value);
+    document.getElementById('won-result').classList.add('show');
+  }, 4200);
+
+  state.lastWon = wonItem;
+  renderUI();
+  save();
+}
+
+function sellWonItem() {
+  if (!wonItem) return;
+  state.coins += wonItem.value;
+  state.totalEarned += wonItem.value;
+  state.itemsSold++;
+  notif(`💰 Продано: ${wonItem.name} за ${fmt(wonItem.value)} монет!`);
+  wonItem = null;
+  closeOverlay();
+}
+
+function keepItem() {
+  if (!wonItem) return;
+  state.inventory.push(wonItem);
+  notif(`🎒 ${wonItem.name} добавлен в инвентарь`);
+  wonItem = null;
+  closeOverlay();
+}
+
+function openAgain() {
+  const curCase = CASES[state.currentCase];
+  if (wonItem) { state.inventory.push(wonItem); wonItem = null; }
+  closeOverlay();
+  setTimeout(() => {
+    if (state.coins >= curCase.cost) openCase();
+    else notif('❌ Недостаточно монет!', true);
+  }, 200);
+}
+
+function closeOverlay() {
+  document.getElementById('open-overlay').classList.remove('active');
+  renderUI();
+  save();
+}
+
+// ==================== INVENTORY SELL ====================
+
+function sellItem(idx) {
+  const item = state.inventory[idx];
+  if (!item) return;
+  state.coins += item.value;
+  state.totalEarned += item.value;
+  state.itemsSold++;
+  state.inventory.splice(idx, 1);
+  notif(`💰 ${item.name}: +${fmt(item.value)} монет`);
+  renderUI();
+  save();
+}
+
+function sellAll() {
+  if (!state.inventory.length) return;
+  let total = 0;
+  state.inventory.forEach(i => total += i.value);
+  state.coins += total;
+  state.totalEarned += total;
+  state.itemsSold += state.inventory.length;
+  state.inventory = [];
+  notif(`💰 Продано всё! +${fmt(total)} монет`);
+  renderUI();
+  save();
+}
+
+function sellCommon() {
+  const commons = state.inventory.filter(i => i.rarity === 'common');
+  if (!commons.length) { notif('Нет common предметов', true); return; }
+  let total = 0;
+  commons.forEach(i => total += i.value);
+  state.coins += total;
+  state.totalEarned += total;
+  state.itemsSold += commons.length;
+  state.inventory = state.inventory.filter(i => i.rarity !== 'common');
+  notif(`💰 Продано ${commons.length} common предметов! +${fmt(total)} монет`);
+  renderUI();
+  save();
+}
+
+// ==================== AUTO INCOME ====================
+
+setInterval(() => {
+  if (state.coinsPerSec <= 0) return;
+  const earned = state.coinsPerSec / 20; // 50ms interval
+  state.coins += earned;
+  state.totalEarned += earned;
+  // Update display occasionally
+}, 50);
+
+setInterval(() => {
+  renderUI();
+  save();
+}, 500);
+
+// ==================== ADMIN PANEL ====================
+
+const ADMIN_CODE = '148869';
+
+function openAdminLogin() {
+  document.getElementById('admin-login-overlay').classList.add('active');
+  document.getElementById('admin-code-input').value = '';
+  document.getElementById('admin-login-err').style.opacity = 0;
+  setTimeout(() => document.getElementById('admin-code-input').focus(), 100);
+}
+
+function closeAdminLogin() {
+  document.getElementById('admin-login-overlay').classList.remove('active');
+}
+
+function checkAdminCode() {
+  const input = document.getElementById('admin-code-input').value;
+  if (input === ADMIN_CODE) {
+    closeAdminLogin();
+    openAdminPanel();
+  } else {
+    document.getElementById('admin-login-err').style.opacity = 1;
+    document.getElementById('admin-code-input').style.borderColor = 'var(--red)';
+    document.getElementById('admin-code-input').value = '';
+    // Shake animation
+    const inp = document.getElementById('admin-code-input');
+    inp.style.animation = 'none';
+    inp.style.transform = 'translateX(-8px)';
+    setTimeout(() => inp.style.transform = 'translateX(8px)', 80);
+    setTimeout(() => inp.style.transform = 'translateX(-5px)', 160);
+    setTimeout(() => inp.style.transform = 'translateX(5px)', 240);
+    setTimeout(() => inp.style.transform = 'none', 320);
+  }
+}
+
+function openAdminPanel() {
+  document.getElementById('admin-panel-overlay').classList.add('active');
+  refreshAdminPanel();
+}
+
+function closeAdminPanel() {
+  document.getElementById('admin-panel-overlay').classList.remove('active');
+  renderUI();
+  save();
+}
+
+function refreshAdminPanel() {
+  document.getElementById('admin-coins-show').textContent = fmt(state.coins);
+  document.getElementById('admin-cpc').value = Math.round(state.coinsPerClick);
+  document.getElementById('admin-cps').value = Math.round(state.coinsPerSec);
+  document.getElementById('admin-cases').value = state.casesOpened;
+
+  // Upgrades status
+  const allUpgrades = [...CLICK_UPGRADES, ...AUTO_UPGRADES];
+  const statusEl = document.getElementById('admin-upgrades-status');
+  statusEl.innerHTML = allUpgrades.map(u => {
+    const lvl = state.upgrades[u.id] || 0;
+    const pct = Math.round((lvl / u.levels) * 100);
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:11px">
+      <span style="flex:1;color:var(--text-dim)">${u.name}</span>
+      <span style="font-family:'Orbitron',monospace;font-size:10px;color:${lvl >= u.levels ? 'var(--green)' : 'var(--text-dim)'}">${lvl}/${u.levels}</span>
+      <div style="width:60px;height:3px;background:var(--border);border-radius:1px"><div style="width:${pct}%;height:100%;background:var(--green);border-radius:1px"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function adminGiveCoins() {
+  const val = parseFloat(document.getElementById('admin-coins-input').value);
+  if (isNaN(val)) return;
+  state.coins += val;
+  state.totalEarned += Math.max(0, val);
+  notif(`👑 ADMIN: +${fmt(val)} монет`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminGiveCoinsAmount(amount) {
+  state.coins += amount;
+  state.totalEarned += amount;
+  notif(`👑 ADMIN: +${fmt(amount)} монет`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminSetCoins(val) {
+  state.coins = val;
+  notif(`👑 ADMIN: Монеты установлены: ${fmt(val)}`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminSetCPC() {
+  const val = parseFloat(document.getElementById('admin-cpc').value);
+  if (isNaN(val) || val < 0) return;
+  state.coinsPerClick = val;
+  notif(`👑 ADMIN: Монет/клик = ${fmt(val)}`);
+  renderUI();
+}
+
+function adminSetCPS() {
+  const val = parseFloat(document.getElementById('admin-cps').value);
+  if (isNaN(val) || val < 0) return;
+  state.coinsPerSec = val;
+  notif(`👑 ADMIN: Монет/сек = ${fmt(val)}`);
+  renderUI();
+}
+
+function adminSetCases() {
+  const val = parseInt(document.getElementById('admin-cases').value);
+  if (isNaN(val) || val < 0) return;
+  state.casesOpened = val;
+  notif(`👑 ADMIN: Кейсов открыто = ${val}`);
+  renderUI();
+}
+
+function adminGiveItem() {
+  const emoji = document.getElementById('admin-item-emoji').value || '🎁';
+  const name = document.getElementById('admin-item-name').value || 'Секретный предмет';
+  const rarity = document.getElementById('admin-item-rarity').value;
+  const value = parseFloat(document.getElementById('admin-item-value').value) || 1000;
+  state.inventory.push({ emoji, name, rarity, value });
+  notif(`👑 ADMIN: ${emoji} ${name} → инвентарь`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminGivePreset(emoji, name, rarity, value) {
+  state.inventory.push({ emoji, name, rarity, value });
+  notif(`👑 ADMIN: ${emoji} ${name} добавлен!`);
+  renderUI();
+}
+
+function adminMaxAllUpgrades() {
+  const allUpgrades = [...CLICK_UPGRADES, ...AUTO_UPGRADES];
+  // Reset bonuses first
+  state.coinsPerClick = 1;
+  state.coinsPerSec = 0;
+  allUpgrades.forEach(u => {
+    state.upgrades[u.id] = u.levels;
+    if (u.type === 'click') state.coinsPerClick += u.bonus * u.levels;
+    else state.coinsPerSec += u.bonus * u.levels;
+  });
+  notif(`👑 ADMIN: Все улучшения максимальны!`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminResetUpgrades() {
+  state.upgrades = {};
+  state.coinsPerClick = 1;
+  state.coinsPerSec = 0;
+  notif(`👑 ADMIN: Улучшения сброшены`);
+  refreshAdminPanel();
+  renderUI();
+}
+
+function adminClearInventory() {
+  state.inventory = [];
+  notif(`👑 ADMIN: Инвентарь очищен`);
+  renderUI();
+}
+
+function adminFillInventory() {
+  const allItems = CASES.flatMap(c => c.items);
+  for (let i = 0; i < 20; i++) {
+    const item = allItems[Math.floor(Math.random() * allItems.length)];
+    state.inventory.push({...item});
+  }
+  notif(`👑 ADMIN: 20 предметов добавлено!`);
+  renderUI();
+}
+
+function adminResetAll() {
+  if (!confirm('Полный сброс игры? Всё будет удалено!')) return;
+  state = {
+    coins: 200, totalEarned: 200, clicks: 0, casesOpened: 0, itemsSold: 0,
+    coinsPerClick: 1, coinsPerSec: 0, currentCase: 0, inventory: [], upgrades: {}, lastWon: null,
+  };
+  notif(`👑 ADMIN: Игра сброшена`);
+  closeAdminPanel();
+  renderUI();
+  save();
+}
+
+// ==================== INIT ====================
+
+renderUI();
+
+</script>
+</body>
+</html>
