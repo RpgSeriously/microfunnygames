@@ -699,6 +699,132 @@ header { display: none !important; }
 .snake-dpad button:active{background:var(--card2);transform:scale(.92)}
 @media(max-width:600px){.snake-dpad{display:flex}#snakeCanvas{width:320px!important;height:320px!important}}
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, set, remove, query, limitToLast, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDmHJunmDxYzS-qZfp97BPxf0zqab-reYw",
+    authDomain: "gamezone-4315f.firebaseapp.com",
+    databaseURL: "https://gamezone-4315f-default-rtdb.firebaseio.com",
+    projectId: "gamezone-4315f",
+    storageBucket: "gamezone-4315f.firebasestorage.app",
+    messagingSenderId: "569888631256",
+    appId: "1:569888631256:web:65dc4d3746ef791a906aad"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ---- CHAT ----
+  function fbSendChat(msg) {
+    push(ref(db, 'chat'), msg);
+  }
+
+  function fbListenChat() {
+    const chatRef = query(ref(db, 'chat'), orderByChild('ts'), limitToLast(60));
+    onValue(chatRef, (snapshot) => {
+      const container = document.getElementById('chatMessages');
+      if (!container) return;
+      container.innerHTML = '<div class="chat-msg system">🎮 Добро пожаловать в чат GameZone!</div>';
+      const msgs = [];
+      snapshot.forEach(child => msgs.push(child.val()));
+      msgs.forEach(msg => {
+        const div = document.createElement('div');
+        const isMe = msg.author === (window.playerState ? window.playerState.username : '');
+        const isAdmin = msg.author === 'v3nc' || msg.isAdmin;
+        div.className = 'chat-msg ' + (isAdmin ? 'admin-msg' : isMe ? 'mine' : 'other');
+        div.innerHTML = `<div class="msg-author ${isAdmin?'is-admin':''}">${isAdmin?'👑 ':''}${msg.author}${isAdmin?' [ADMIN]':''} <span class="level-badge">Lv.${msg.level||1}</span></div>${msg.text}<div class="msg-time">${msg.time}</div>`;
+        container.appendChild(div);
+      });
+      container.scrollTop = container.scrollHeight;
+    });
+  }
+
+  // ---- TRADES ----
+  function fbSendTrade(trade) {
+    push(ref(db, 'trades'), trade);
+  }
+
+  function fbListenTrades() {
+    onValue(ref(db, 'trades'), (snapshot) => {
+      window._fbTrades = [];
+      snapshot.forEach(child => window._fbTrades.push({...child.val(), _key: child.key}));
+      if (typeof renderFbTrades === 'function') renderFbTrades();
+    });
+  }
+
+  function fbAcceptTrade(key) {
+    set(ref(db, 'trades/' + key + '/status'), 'accepted');
+  }
+
+  function fbDeclineTrade(key) {
+    remove(ref(db, 'trades/' + key));
+  }
+
+  // ---- LEADERBOARD ----
+  function fbSetScore(username, level, xp) {
+    set(ref(db, 'players/' + username.replace(/[.#$/[\]]/g,'')), { username, level, xp, ts: Date.now() });
+  }
+
+  function fbListenLeaderboard() {
+    const lbRef = query(ref(db, 'players'), orderByChild('xp'), limitToLast(10));
+    onValue(lbRef, (snapshot) => {
+      const players = [];
+      snapshot.forEach(child => players.push(child.val()));
+      players.sort((a,b) => b.xp - a.xp);
+      window._fbPlayers = players;
+      if (typeof renderFbLeaderboard === 'function') renderFbLeaderboard();
+    });
+  }
+
+  // ---- ONLINE USERS ----
+  function fbSetOnline(username, level) {
+    const key = username.replace(/[.#$/[\]]/g,'');
+    set(ref(db, 'online/' + key), { username, level, ts: Date.now() });
+    // Remove on disconnect handled by Firebase presence
+  }
+
+  function fbListenOnline() {
+    onValue(ref(db, 'online'), (snapshot) => {
+      const users = [];
+      snapshot.forEach(child => users.push(child.val()));
+      // Filter recent (last 2 min)
+      const recent = users.filter(u => Date.now() - u.ts < 120000);
+      document.getElementById('onlineCount') && (document.getElementById('onlineCount').textContent = recent.length);
+      const list = document.getElementById('onlineList');
+      if (list) {
+        list.innerHTML = recent.map(u => {
+          const isMe = u.username === (window.playerState ? window.playerState.username : '');
+          const isAdmin = u.username === 'v3nc';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+            <div style="width:8px;height:8px;background:var(--green);border-radius:50%;flex-shrink:0"></div>
+            <span style="flex:1;font-weight:700;font-size:.85rem;color:${isAdmin?'var(--a3)':'var(--text)'}">${isAdmin?'👑 ':''}${u.username}${isMe?' (ты)':''}</span>
+            <span class="level-badge">Lv.${u.level||1}</span>
+          </div>`;
+        }).join('') || '<div style="color:var(--muted);font-size:.8rem">Никого нет онлайн</div>';
+      }
+    });
+  }
+
+  // Expose to window
+  window.fbSendChat = fbSendChat;
+  window.fbSendTrade = fbSendTrade;
+  window.fbAcceptTrade = fbAcceptTrade;
+  window.fbDeclineTrade = fbDeclineTrade;
+  window.fbSetScore = fbSetScore;
+  window.fbSetOnline = fbSetOnline;
+
+  // Start listeners
+  fbListenChat();
+  fbListenTrades();
+  fbListenLeaderboard();
+  fbListenOnline();
+
+  window._fbReady = true;
+</script>
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -2783,18 +2909,15 @@ function sendChat() {
     text: text,
     time: new Date().toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit'}),
     level: playerState.level,
-    isAdmin: playerState.isAdmin
+    isAdmin: playerState.isAdmin,
+    ts: Date.now()
   };
-  appendChatMsg(msg);
   input.value = '';
   addXP(2, 'Сообщение в чат');
-  // Fake reply sometimes
-  if (Math.random() < 0.4) {
-    setTimeout(() => {
-      const fakeUser = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
-      const fakeText = FAKE_MSGS[Math.floor(Math.random()*FAKE_MSGS.length)];
-      appendChatMsg({ author: fakeUser, text: fakeText, time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}), level: Math.floor(Math.random()*20)+1 });
-    }, 1200 + Math.random()*2000);
+  if (window.fbSendChat) {
+    window.fbSendChat(msg);
+  } else {
+    appendChatMsg(msg);
   }
 }
 
@@ -2855,15 +2978,20 @@ function createTrade() {
     comment: comment,
     status: 'pending',
     time: new Date().toLocaleString('ru'),
+    ts: Date.now()
   };
-  tradesData.push(trade);
-  localStorage.setItem('gz_trades', JSON.stringify(tradesData));
   document.getElementById('tradeTarget').value = '';
   document.getElementById('tradeWant').value = '';
   document.getElementById('tradeComment').value = '';
-  renderTrades();
   addXP(5, 'Создан трейд');
-  toast('✅ Трейд отправлен игроку ' + target + '!');
+  if (window.fbSendTrade) {
+    window.fbSendTrade(trade);
+    toast('✅ Трейд отправлен игроку ' + target + '!');
+  } else {
+    tradesData.push(trade);
+    renderTrades();
+    toast('✅ Трейд отправлен (оффлайн)!');
+  }
 }
 
 function renderTrades() {
@@ -2987,5 +3115,73 @@ window.go = function(id, btn) {
   }
 };
 </script>
-</body>
+<script>
+// Firebase trades renderer
+function renderFbTrades() {
+  const trades = window._fbTrades || [];
+  const myOut = trades.filter(t => t.from === playerState.username);
+  const myIn = trades.filter(t => t.to === playerState.username);
+  document.getElementById('tradeOutCount').textContent = myOut.length;
+  document.getElementById('tradeInCount').textContent = myIn.length;
+  const renderList = (items, container, isIncoming) => {
+    if (!items.length) { container.innerHTML = `<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">Нет трейдов</div>`; return; }
+    container.innerHTML = items.map(t => `
+      <div class="trade-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-weight:800;font-size:.85rem">${isIncoming ? 'От: '+t.from : 'Кому: '+t.to}</span>
+          <span style="font-size:.7rem;padding:2px 8px;border-radius:100px;background:${t.status==='pending'?'rgba(255,230,0,.15)':'rgba(0,230,118,.15)'};color:${t.status==='pending'?'var(--a3)':'var(--green)'}">${t.status==='pending'?'⏳ Ожидает':'✅ Принят'}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--muted)">📦 Предмет: <span style="color:var(--text);font-weight:700">${t.item.emoji} ${t.item.name}</span></div>
+        <div style="font-size:.82rem;color:var(--muted)">🙏 Хочет: <span style="color:var(--text)">${t.want}</span></div>
+        ${t.comment ? `<div style="font-size:.78rem;color:var(--muted);margin-top:4px">💬 ${t.comment}</div>` : ''}
+        ${isIncoming && t.status==='pending' ? `
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="fbAcceptTrade&&fbAcceptTrade('${t._key}')" style="flex:1;padding:8px;background:linear-gradient(90deg,var(--green),#009688);border:none;border-radius:10px;color:#000;font-weight:900;font-size:.8rem;cursor:pointer">✅ Принять</button>
+            <button onclick="fbDeclineTrade&&fbDeclineTrade('${t._key}')" style="flex:1;padding:8px;background:rgba(255,64,96,.15);border:1px solid var(--a1);border-radius:10px;color:var(--a1);font-weight:900;font-size:.8rem;cursor:pointer">❌ Отклонить</button>
+          </div>` : ''}
+        ${!isIncoming ? `<button onclick="fbDeclineTrade&&fbDeclineTrade('${t._key}')" style="margin-top:8px;width:100%;padding:7px;background:rgba(255,64,96,.1);border:1px solid rgba(255,64,96,.3);border-radius:10px;color:var(--a1);font-weight:700;font-size:.78rem;cursor:pointer">Отменить</button>` : ''}
+      </div>`).join('');
+  };
+  renderList(myOut, document.getElementById('tradeOutList'), false);
+  renderList(myIn, document.getElementById('tradeInList'), true);
+}
+
+// Firebase leaderboard renderer
+function renderFbLeaderboard() {
+  const players = window._fbPlayers || [];
+  if (!players.length) return;
+  const medals = ['g','s','b','',''];
+  const lbContainer = document.querySelector('#page-leaderboard .lb');
+  if (!lbContainer) return;
+  const header = lbContainer.querySelector('.lb-h');
+  // Remove old dynamic rows
+  lbContainer.querySelectorAll('.lb-row.dynamic').forEach(r => r.remove());
+  players.slice(0,5).forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row dynamic';
+    const isMe = p.username === playerState.username;
+    if (isMe) row.style.cssText = 'background:rgba(255,64,96,.06);border-left:3px solid var(--a1)';
+    row.innerHTML = `<div class="lb-rank ${medals[i]||''}">${i+1}</div><div class="lb-ava" style="background:linear-gradient(135deg,#ff4060,#b14aff)">${p.username==='v3nc'?'👑':'😎'}</div><div><div class="lb-name">${p.username==='v3nc'?'👑 ':''} ${p.username}</div><div class="lb-sub">Уровень ${p.level}</div></div><div class="lb-score" style="${isMe?'color:var(--a1)':''}">${p.xp} XP</div>`;
+    lbContainer.appendChild(row);
+  });
+}
+
+// Push player data to Firebase when XP changes
+const _origAddXP = addXP;
+function addXP(amount, reason) {
+  _origAddXP(amount, reason);
+  if (window.fbSetScore && playerState.username !== 'Гость') {
+    window.fbSetScore(playerState.username, playerState.level, playerState.xp);
+  }
+}
+
+// Set online when page loads or username changes
+function setOnlinePresence() {
+  if (window.fbSetOnline && playerState.username !== 'Гость') {
+    window.fbSetOnline(playerState.username, playerState.level);
+    setInterval(() => window.fbSetOnline(playerState.username, playerState.level), 60000);
+  }
+}
+setTimeout(setOnlinePresence, 1500);
+</script></body>
 </html>
